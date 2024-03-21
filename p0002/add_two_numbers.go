@@ -1,17 +1,15 @@
 package p0002
 
-// Definition for singly-linked list.
-type ListNode struct {
-	Val  int
-	Next *ListNode
-}
+import lists "github.com/sergiovaneg/GO_leetcode/Lists"
+
+type ListNode = lists.SinglyLinkedNode
 
 func addAndUpdate(new_tmp int, current *ListNode) int {
 	if new_tmp >= 10 {
-		current.Next = &ListNode{new_tmp - 10, nil}
+		current.Next = &ListNode{Val: new_tmp - 10, Next: nil}
 		return 1
 	} else {
-		current.Next = &ListNode{new_tmp, nil}
+		current.Next = &ListNode{Val: new_tmp, Next: nil}
 		return 0
 	}
 }
@@ -40,7 +38,7 @@ func AddTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
 		current = current.Next
 	}
 	if tmp == 1 {
-		current.Next = &ListNode{1, nil}
+		current.Next = &ListNode{Val: 1, Next: nil}
 	}
 
 	return res.Next

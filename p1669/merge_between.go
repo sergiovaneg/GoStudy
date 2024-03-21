@@ -1,9 +1,8 @@
 package p1669
 
-type ListNode struct {
-	Val  int
-	Next *ListNode
-}
+import lists "github.com/sergiovaneg/GO_leetcode/Lists"
+
+type ListNode = lists.SinglyLinkedNode
 
 func MergeInBetween(list1 *ListNode, a int, b int, list2 *ListNode) *ListNode {
 	idx := 0
