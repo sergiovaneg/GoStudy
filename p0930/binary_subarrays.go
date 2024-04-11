@@ -1,7 +1,7 @@
 package p0930
 
 func NumSubarraysWithSum(nums []int, goal int) int {
-	c := make(chan int)
+	c := make(chan int, 2)
 	defer close(c)
 
 	go atMostAsync(nums, goal, c)

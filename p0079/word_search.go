@@ -1,6 +1,9 @@
 package p0079
 
-import "strings"
+import (
+	"strings"
+	"sync"
+)
 
 func findNext(board [][]byte, used [][]bool, m, n int,
 	word string, word_idx int) bool {
@@ -40,21 +43,65 @@ func findNext(board [][]byte, used [][]bool, m, n int,
 
 func Exist(board [][]byte, word string) bool {
 	// Indicator matrix init
-	used := make([][]bool, len(board))
-	for m, m_lim := 0, len(board); m < m_lim; m++ {
-		used[m] = make([]bool, len(board[m]))
-		for n, n_lim := 0, len(board[m]); n < n_lim; n++ {
-			used[m][n] = !strings.Contains(word, string(board[m][n]))
-		}
+	m_size, n_size := len(board), len(board[0])
+	used := make([][][]bool, n_size)
+	used[0] = make([][]bool, m_size)
+
+	var wg sync.WaitGroup
+
+	wg.Add(m_size)
+	for m := 0; m < m_size; m++ {
+		m := m
+		go func() {
+			defer wg.Done()
+			used[0][m] = make([]bool, n_size)
+			for n := 0; n < n_size; n++ {
+				used[0][m][n] = !strings.Contains(word, string(board[m][n]))
+			}
+		}()
+	}
+	wg.Wait()
+
+	wg.Add(n_size - 1)
+	for n := 1; n < n_size; n++ {
+		n := n
+		go func() {
+			defer wg.Done()
+			used[n] = make([][]bool, m_size)
+			wg.Add(m_size)
+			for m := 0; m < m_size; m++ {
+				n := n
+				m := m
+				go func() {
+					defer wg.Done()
+					used[n][m] = make([]bool, n_size)
+					copy(used[n][m], used[0][m])
+				}()
+			}
+		}()
 	}
 
+	wg.Wait()
+
 	// Matrix exploration
-	for m, m_lim := 0, len(board); m < m_lim; m++ {
-		for n, n_lim := 0, len(board[m]); n < n_lim; n++ {
-			if used[m][n] {
-				continue
-			}
-			if findNext(board, used, m, n, word, 0) {
+	for m := 0; m < m_size; m++ {
+		success := make(chan bool, n_size)
+		wg.Add(n_size)
+		for n := 0; n < n_size; n++ {
+			n := n
+			go func() {
+				defer wg.Done()
+				if used[n][m][n] {
+					success <- false
+					return
+				}
+				success <- findNext(board, used[n], m, n, word, 0)
+			}()
+		}
+		wg.Wait()
+		for n := 0; n < n_size; n++ {
+			result := <-success
+			if result {
 				return true
 			}
 		}
