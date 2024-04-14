@@ -7,7 +7,7 @@ import (
 	"github.com/sergiovaneg/GO_leetcode/p0143"
 )
 
-type ListNode = lists.SinglyLinkedNode
+type ListNode = lists.SinglyLinkedNode[int]
 
 func TestReorderList(t *testing.T) {
 	list_1 := lists.MakeSinglyLinkedList([]int{1, 2, 3, 4, 5})

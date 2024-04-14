@@ -2,7 +2,7 @@ package p0002
 
 import lists "github.com/sergiovaneg/GO_leetcode/Lists"
 
-type ListNode = lists.SinglyLinkedNode
+type ListNode = lists.SinglyLinkedNode[int]
 
 func addAndUpdate(new_tmp int, current *ListNode) int {
 	if new_tmp >= 10 {

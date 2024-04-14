@@ -2,7 +2,7 @@ package p0234
 
 import lists "github.com/sergiovaneg/GO_leetcode/Lists"
 
-type ListNode = lists.SinglyLinkedNode
+type ListNode = lists.SinglyLinkedNode[int]
 
 func IsPalindrome(head *ListNode) bool {
 	// Get number of nodes

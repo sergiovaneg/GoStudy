@@ -2,7 +2,7 @@ package p0206
 
 import lists "github.com/sergiovaneg/GO_leetcode/Lists"
 
-type ListNode = lists.SinglyLinkedNode
+type ListNode = lists.SinglyLinkedNode[int]
 
 /* Iterative version
 func ReverseList(head *ListNode) *ListNode {

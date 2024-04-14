@@ -2,7 +2,7 @@ package p0143
 
 import lists "github.com/sergiovaneg/GO_leetcode/Lists"
 
-type ListNode = lists.SinglyLinkedNode
+type ListNode = lists.SinglyLinkedNode[int]
 
 func ReorderList(head *ListNode) {
 	// Get list length

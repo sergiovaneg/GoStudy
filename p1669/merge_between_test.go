@@ -7,11 +7,9 @@ import (
 	"github.com/sergiovaneg/GO_leetcode/p1669"
 )
 
-type ListNode = lists.SinglyLinkedNode
-
 func TestMergeInBetween(t *testing.T) {
-	makeList := lists.MakeSinglyLinkedList
-	compareLists := lists.CompareSinglyLinkedLists
+	makeList := lists.MakeSinglyLinkedList[int]
+	compareLists := lists.CompareSinglyLinkedLists[int]
 
 	list1 := makeList([]int{10, 1, 13, 6, 9, 5})
 	list2 := makeList([]int{1000000, 1000001, 1000002})

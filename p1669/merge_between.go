@@ -2,7 +2,7 @@ package p1669
 
 import lists "github.com/sergiovaneg/GO_leetcode/Lists"
 
-type ListNode = lists.SinglyLinkedNode
+type ListNode = lists.SinglyLinkedNode[int]
 
 func MergeInBetween(list1 *ListNode, a int, b int, list2 *ListNode) *ListNode {
 	idx := 0

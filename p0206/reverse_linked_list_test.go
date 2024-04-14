@@ -8,8 +8,8 @@ import (
 )
 
 func TestReverseList(t *testing.T) {
-	makeList := lists.MakeSinglyLinkedList
-	compareList := lists.CompareSinglyLinkedLists
+	makeList := lists.MakeSinglyLinkedList[int]
+	compareList := lists.CompareSinglyLinkedLists[int]
 
 	original := makeList([]int{1, 2, 3, 4, 5})
 	reversed := makeList([]int{5, 4, 3, 2, 1})

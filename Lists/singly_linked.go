@@ -1,23 +1,23 @@
 package lists
 
-type SinglyLinkedNode struct {
-	Val  int
-	Next *SinglyLinkedNode
+type SinglyLinkedNode[T any] struct {
+	Val  T
+	Next *SinglyLinkedNode[T]
 }
 
-func MakeSinglyLinkedList(numbers []int) *SinglyLinkedNode {
-	list := new(SinglyLinkedNode)
+func MakeSinglyLinkedList[T any](elements []T) *SinglyLinkedNode[T] {
+	list := new(SinglyLinkedNode[T])
 	current := list
-	for _, e := range numbers {
-		current.Next = &SinglyLinkedNode{Val: e, Next: nil}
+	for _, e := range elements {
+		current.Next = &SinglyLinkedNode[T]{Val: e, Next: nil}
 		current = current.Next
 	}
 	return list.Next
 }
 
-func CompareSinglyLinkedLists(
-	list1 *SinglyLinkedNode,
-	list2 *SinglyLinkedNode) bool {
+func CompareSinglyLinkedLists[T comparable](
+	list1 *SinglyLinkedNode[T],
+	list2 *SinglyLinkedNode[T]) bool {
 	for list1.Next != nil && list2.Next != nil {
 		if list1.Val != list2.Val {
 			return false
