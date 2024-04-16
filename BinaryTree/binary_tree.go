@@ -1,6 +1,12 @@
 package binarytree
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+	"strings"
+)
+
+const NullInt = -int(^uint(0)>>1) + 1
 
 type TreeNode[T any] struct {
 	Val   T
@@ -61,4 +67,47 @@ func MakeBinaryTree[T comparable](elements []T, null T) *TreeNode[T] {
 	root.Right = MakeBinaryTree(right, null)
 
 	return root
+}
+
+func CompareBinaryTree[T comparable](root1, root2 *TreeNode[T]) bool {
+	if root1 == nil || root2 == nil {
+		return root1 == root2
+	}
+	return root1.Val == root2.Val && CompareBinaryTree(root1.Left, root2.Left) && CompareBinaryTree(root1.Right, root2.Right)
+}
+
+func GetMaxDepth[T any](root *TreeNode[T]) int {
+	var rec_level func(*TreeNode[T], int) int
+	rec_level = func(root *TreeNode[T], depth int) int {
+		if root == nil {
+			return depth
+		}
+		return max(rec_level(root.Left, depth+1), rec_level(root.Right, depth+1))
+	}
+
+	return rec_level(root, 0)
+}
+
+func PrintBinaryTree[T any](root *TreeNode[T]) string {
+	max_depth := GetMaxDepth(root)
+	result := make([]string, max_depth)
+
+	var rec_level func(*TreeNode[T], int, []string)
+	rec_level = func(root *TreeNode[T], level int, result []string) {
+		if root == nil {
+			for i, reps := level, 1; i < max_depth; i, reps = i+1, reps*2 {
+				for j := 0; j < reps; j++ {
+					result[i] += "null\t"
+				}
+			}
+		} else {
+			result[level] += fmt.Sprint(root.Val) + "\t"
+			rec_level(root.Left, level+1, result)
+			rec_level(root.Right, level+1, result)
+		}
+	}
+
+	rec_level(root, 0, result)
+
+	return strings.Join(result, "\n")
 }

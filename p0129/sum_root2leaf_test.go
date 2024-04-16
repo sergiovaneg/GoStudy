@@ -8,17 +8,17 @@ import (
 )
 
 func TestSumNumbers(t *testing.T) {
-	const NullInt = -int(^uint(0)>>1) + 1
 	var res int
 
 	MakeBinaryTree := binarytree.MakeBinaryTree[int]
 
-	res = p0129.SumNumbers(MakeBinaryTree([]int{1, 2, 3}, NullInt))
+	res = p0129.SumNumbers(MakeBinaryTree([]int{1, 2, 3}, binarytree.NullInt))
 	if res != 25 {
 		t.Fatalf("Expected 25; got %v", res)
 	}
 
-	res = p0129.SumNumbers(MakeBinaryTree([]int{4, 9, 0, 5, 1}, NullInt))
+	res = p0129.SumNumbers(MakeBinaryTree([]int{4, 9, 0, 5, 1},
+		binarytree.NullInt))
 	if res != 1026 {
 		t.Fatalf("Expected 1026; got %v", res)
 	}
