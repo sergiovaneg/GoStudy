@@ -2,6 +2,7 @@ package binarytree
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 )
@@ -96,18 +97,27 @@ func PrintBinaryTree[T any](root *TreeNode[T]) string {
 	rec_level = func(root *TreeNode[T], level int, result []string) {
 		if root == nil {
 			for i, reps := level, 1; i < max_depth; i, reps = i+1, reps*2 {
+				level_separator := strings.Repeat("\t",
+					int(math.Pow(2, float64(max_depth-i))))
 				for j := 0; j < reps; j++ {
-					result[i] += "null\t"
+					result[i] += "null" + level_separator
 				}
 			}
 		} else {
-			result[level] += fmt.Sprint(root.Val) + "\t"
+			level_separator := strings.Repeat("\t",
+				int(math.Pow(2, float64(max_depth-level))))
+			result[level] += fmt.Sprint(root.Val) + level_separator
 			rec_level(root.Left, level+1, result)
 			rec_level(root.Right, level+1, result)
 		}
 	}
 
 	rec_level(root, 0, result)
+
+	for level := 0; level < max_depth; level++ {
+		pad := strings.Repeat("\t", int(math.Pow(2, float64(max_depth-level-1)))-1)
+		result[level] = pad + result[level]
+	}
 
 	return strings.Join(result, "\n")
 }
