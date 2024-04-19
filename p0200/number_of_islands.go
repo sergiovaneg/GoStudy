@@ -33,10 +33,10 @@ func (g *ParallelGrid) explore_cell(row, col, id int) bool {
 		mu_grid := &g.mu_grid[row][col]
 
 		mu_grid.RLock()
-		next_id := g.id_grid[row][col]
+		observed_id := g.id_grid[row][col]
 		mu_grid.RUnlock()
 
-		if next_id == 0 { // I have to do the job of marking
+		if observed_id == 0 { // I have to do the job of marking
 			mu_grid.Lock()
 			g.id_grid[row][col] = id
 			mu_grid.Unlock()
@@ -44,18 +44,18 @@ func (g *ParallelGrid) explore_cell(row, col, id int) bool {
 			return g.explore_cell(row, col, id)
 		}
 
-		if next_id > id {
+		if observed_id > id {
 			mu_grid.Lock()
 			g.id_grid[row][col] = id
 			mu_grid.Unlock()
 
-			g.mu_interrupt[next_id-1].Lock()
-			g.interrupt[next_id-1] = true
-			g.mu_interrupt[next_id-1].Unlock()
+			g.mu_interrupt[observed_id-1].Lock()
+			g.interrupt[observed_id-1] = true
+			g.mu_interrupt[observed_id-1].Unlock()
 
 			return g.explore_cell(row, col, id)
 		}
-		if next_id == id { // Tracing-back
+		if observed_id == id { // Tracing-back
 			return true
 		}
 
@@ -109,30 +109,40 @@ func NumIslands(grid [][]byte) int {
 	c := make(chan bool, g.rows*g.cols) // Oversized buffer
 
 	var wg sync.WaitGroup
-	wg.Add(g.rows * g.cols)
-	for row := 0; row < g.rows; row++ {
-		for col := 0; col < g.cols; col++ {
-			mu := &g.mu_grid[row][col]
-			mu.RLock()
-			if g.grid[row][col] == '0' || g.id_grid[row][col] > 0 {
-				wg.Done()
-				mu.RUnlock()
-				continue
+
+	starter := func(row, col int) {
+		mu := &g.mu_grid[row][col]
+
+		mu.RLock()
+		observed_id := g.id_grid[row][col]
+		mu.RUnlock()
+
+		if g.grid[row][col] == '0' || observed_id > 0 {
+			return
+		}
+
+		wg.Add(1)
+
+		mu.Lock()
+		g.id_grid[row][col] = id
+		mu.Unlock()
+
+		go func(id int, c chan<- bool) {
+			defer wg.Done()
+			if g.explore_cell(row, col, id) {
+				c <- true
 			}
+		}(id, c)
 
-			mu.RUnlock()
-			mu.Lock()
-			g.id_grid[row][col] = id
-			mu.Unlock()
+		id++
+	}
 
-			go func(row, col, id int, c chan<- bool) {
-				defer wg.Done()
-				if g.explore_cell(row, col, id) {
-					c <- true
-				}
-			}(row, col, id, c)
-
-			id++
+	for row := 0; row < g.rows-g.rows/2; row++ {
+		for col := 0; col < g.cols-g.cols/2; col++ {
+			starter(row, col)
+			starter(g.rows-row-1, col)
+			starter(row, g.cols-col-1)
+			starter(g.rows-row-1, g.cols-col-1)
 		}
 	}
 	wg.Wait()
