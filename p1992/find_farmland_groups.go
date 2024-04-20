@@ -1,6 +1,9 @@
 package p1992
 
-import "slices"
+import (
+	"slices"
+	"sync"
+)
 
 func findWatson(land [][]int, i, j, m, n int) [2]int {
 	br := [2]int{i, j}
@@ -20,32 +23,53 @@ func findWatson(land [][]int, i, j, m, n int) [2]int {
 	return br
 }
 
-func FindFarmland(land [][]int) [][]int {
-	m, n := len(land), len(land[0])
-	area := m * n
+func exploreRectangle(land [][]int, m, n,
+	i_low, j_low, i_high, j_high int) [][]int {
+	area := (i_high - i_low) * (n - j_low)
 	res := make([][]int, 0, area-area/2)
 
-	skips := make([][3]int, 0, n)
-	skips = append(skips, [3]int{m, 0, 0}, [3]int{m, n, n})
+	var wg sync.WaitGroup
+	c := make(chan [][]int, 2*(i_high-i_low))
+	spawn := func(c chan<- [][]int, i_low, j_low, i_high, j_high int) {
+		defer wg.Done()
+		c <- exploreRectangle(land, m, n, i_low, j_low, i_high, j_high)
+	}
 
-	for i := 0; i < m; i++ {
-		for skip_idx := 1; skip_idx < len(skips); skip_idx++ {
-			for j := skips[skip_idx-1][2]; j < skips[skip_idx][1]; j++ {
-				if land[i][j] == 1 {
-					br := findWatson(land, i, j, m, n)
-					res = append(res, []int{i, j, br[0], br[1]})
-					skips = slices.Insert(skips, skip_idx, [3]int{br[0], j, br[1] + 1})
-					skip_idx--
-				}
+	for i := i_low; i < i_high; i++ {
+		j := slices.Index(land[i][j_low:j_high], 1) + j_low
+
+		if j != j_low-1 && (i == 0 || land[i-1][j] == 0) {
+			// Get rectangle
+			br := findWatson(land, i, j, m, n)
+			res = append(res, []int{i, j, br[0], br[1]})
+
+			// Spawn to the right
+			if br[1] < n-1 {
+				wg.Add(1)
+				go spawn(c, i, br[1]+1, br[0]+1, j_high)
 			}
-		}
-		for skip_idx := 1; skip_idx < len(skips)-1; skip_idx++ {
-			if i == skips[skip_idx][0] {
-				skips = slices.Delete(skips, skip_idx, skip_idx+1)
-				skip_idx--
+
+			// Spawn to the left
+			if j > 0 && br[0] != i {
+				wg.Add(1)
+				go spawn(c, i+1, j_low, br[0]+1, j)
 			}
+
+			// Skip to the bottom
+			i = br[0]
 		}
 	}
 
+	wg.Wait()
+	for len(c) > 0 {
+		res = append(res, <-c...)
+	}
+
 	return res
+}
+
+func FindFarmland(land [][]int) [][]int {
+	m, n := len(land), len(land[0])
+
+	return exploreRectangle(land, m, n, 0, 0, m, n)
 }
