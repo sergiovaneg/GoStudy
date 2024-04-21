@@ -38,7 +38,14 @@ func updateBooleanPath(boolean_path []bool, edges [][]int) bool {
 }
 
 func ValidPath(n int, edges [][]int, source int, destination int) bool {
+	if source == destination {
+		return true
+	}
+
 	boolean_path := initBooleanPath(n, edges, source)
+	if boolean_path[destination] {
+		return true
+	}
 
 	for updateBooleanPath(boolean_path, edges) {
 		if boolean_path[destination] {
@@ -46,5 +53,5 @@ func ValidPath(n int, edges [][]int, source int, destination int) bool {
 		}
 	}
 
-	return boolean_path[destination]
+	return false
 }
