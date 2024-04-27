@@ -26,7 +26,7 @@ func findWatson(land [][]int, i, j, m, n int) [2]int {
 func exploreRectangle(land [][]int, m, n,
 	i_low, j_low, i_high, j_high int) [][]int {
 	area := (i_high - i_low) * (n - j_low)
-	res := make([][]int, 0, area-area/2)
+	res := make([][]int, 0, area-area>>1)
 
 	var wg sync.WaitGroup
 	c := make(chan [][]int, 2*(i_high-i_low))

@@ -8,7 +8,7 @@ func absInt(x int) int {
 }
 
 func FindDuplicates(nums []int) []int {
-	result := make([]int, 0, len(nums)/2)
+	result := make([]int, 0, len(nums)>>1)
 	for idx := 0; idx < len(nums); idx++ {
 		aux := absInt(nums[idx])
 		if nums[aux-1] < 0 {

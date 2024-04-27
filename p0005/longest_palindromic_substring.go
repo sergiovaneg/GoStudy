@@ -3,7 +3,7 @@ package p0005
 func isPalindrome(s string) bool {
 
 	l := len(s)
-	l_halves := l - l/2
+	l_halves := l - l>>1
 	for idx1, idx2 := 0, l-1; idx1 < l_halves; idx1, idx2 = idx1+1, idx2-1 {
 		if s[idx1] != s[idx2] {
 			return false

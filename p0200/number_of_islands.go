@@ -137,8 +137,8 @@ func NumIslands(grid [][]byte) int {
 		id++
 	}
 
-	for row := 0; row < g.rows-g.rows/2; row++ {
-		for col := 0; col < g.cols-g.cols/2; col++ {
+	for row := 0; row < g.rows-g.rows>>1; row++ {
+		for col := 0; col < g.cols-g.cols>>1; col++ {
 			starter(row, col)
 			starter(g.rows-row-1, col)
 			starter(row, g.cols-col-1)

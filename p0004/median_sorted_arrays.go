@@ -7,7 +7,7 @@ func FindMedianSortedArrays(nums1 []int, nums2 []int) float64 {
 		return FindMedianSortedArrays(nums2, nums1)
 	}
 	if n1 == 0 { // nums1 is always the smallest
-		if n2%2 == 1 {
+		if n2&1 == 1 {
 			return float64(nums2[n2>>1])
 		} else {
 			return float64(nums2[n2>>1]+nums2[n2>>1-1]) / 2.
@@ -39,7 +39,7 @@ func FindMedianSortedArrays(nums1 []int, nums2 []int) float64 {
 		}
 
 		if l1 <= r2 && l2 <= r1 { // Found correct partition
-			if n%2 == 1 {
+			if n&1 == 1 {
 				return float64(max(l1, l2))
 			} else {
 				return float64(max(l1, l2)+min(r1, r2)) / 2.

@@ -10,8 +10,8 @@ func SortEvenOdd(nums []int) []int {
 	var nums_odd []int = make([]int, 0, 50)
 
 	var current_even bool = true
-	var count_even = (len(nums) + 1) / 2
-	var count_odd = len(nums) / 2
+	var count_even = (len(nums) + 1) >> 1
+	var count_odd = len(nums) >> 1
 
 	for _, element := range nums {
 		if current_even {

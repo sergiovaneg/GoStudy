@@ -18,7 +18,7 @@ func ReorderList(head *ListNode) {
 
 	// Reverse second half of the list
 	aux := head
-	for idx := 0; idx < N/2; idx++ {
+	for idx := 0; idx < N>>1; idx++ {
 		aux = aux.Next
 	}
 	tail := aux.Next

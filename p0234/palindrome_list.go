@@ -25,7 +25,7 @@ func IsPalindrome(head *ListNode) bool {
 	// Invert half the list
 	var prev *ListNode = nil
 	current := head
-	for idx := 0; idx < N/2; idx++ {
+	for idx := 0; idx < N>>1; idx++ {
 		tmp := current.Next
 		current.Next = prev
 		prev = current
@@ -33,7 +33,7 @@ func IsPalindrome(head *ListNode) bool {
 	}
 
 	// Skip middle node if odd node count
-	if N%2 == 1 {
+	if N&1 == 1 {
 		current = current.Next
 	}
 

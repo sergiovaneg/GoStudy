@@ -7,7 +7,7 @@ func PivotInteger(n int) int {
 		return -1
 	}
 
-	n_halves := n / 2
+	n_halves := n >> 1
 	n_minus_n_halves := n - n_halves
 
 	cumsum := make([]int, n_minus_n_halves)
