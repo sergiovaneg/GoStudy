@@ -1,10 +1,10 @@
-package p0781_test
+package p0786_test
 
 import (
 	"slices"
 	"testing"
 
-	p0781 "github.com/sergiovaneg/GO_leetcode/p0786"
+	"github.com/sergiovaneg/GO_leetcode/p0786"
 )
 
 func TestKSmallestFrac(t *testing.T) {
@@ -12,7 +12,7 @@ func TestKSmallestFrac(t *testing.T) {
 	fracs := make([]float64, k_max)
 
 	for k := 1; k <= k_max; k++ {
-		res := p0781.KthSmallestPrimeFraction([]int{1, 2, 3, 5, 7, 11, 13, 17}, k)
+		res := p0786.KthSmallestPrimeFraction([]int{1, 2, 3, 5, 7, 11, 13, 17}, k)
 		fracs[k-1] = float64(res[0]) / float64(res[1])
 	}
 
