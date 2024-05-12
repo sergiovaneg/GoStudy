@@ -1,7 +1,5 @@
 package p2373
 
-import "slices"
-
 func LargestLocal(grid [][]int) [][]int {
 	nm2 := len(grid) - 2
 	res := make([][]int, nm2)
@@ -10,9 +8,9 @@ func LargestLocal(grid [][]int) [][]int {
 		res[i] = make([]int, nm2)
 		for j := 0; j < nm2; j++ {
 			res[i][j] = max(
-				slices.Max(grid[i][j:j+3]),
-				slices.Max(grid[i+1][j:j+3]),
-				slices.Max(grid[i+2][j:j+3]))
+				grid[i][j], grid[i][j+1], grid[i][j+2],
+				grid[i+1][j], grid[i+1][j+1], grid[i+1][j+2],
+				grid[i+2][j], grid[i+2][j+1], grid[i+2][j+2])
 		}
 	}
 
