@@ -4,8 +4,7 @@ import "sync"
 
 type Path [][]bool
 
-func initPath(grid [][]int) Path {
-	m, n := len(grid), len(grid[0])
+func initPath(grid [][]int, m, n int) Path {
 	path := make(Path, m)
 
 	for i, row := range grid {
@@ -15,6 +14,17 @@ func initPath(grid [][]int) Path {
 				path[i][j] = true
 			}
 		}
+	}
+
+	return path
+}
+
+func copyPath(reference Path, m, n int) Path {
+	path := make(Path, m)
+
+	for i, row := range reference {
+		path[i] = make([]bool, n)
+		copy(path[i], row)
 	}
 
 	return path
@@ -46,7 +56,10 @@ func GetMaximumGold(grid [][]int) int {
 	var wg sync.WaitGroup
 	c := make(chan int, 25)
 
-	for i, m, n := 0, len(grid), len(grid[0]); i < m; i++ {
+	m, n := len(grid), len(grid[0])
+	reference := initPath(grid, m, n)
+
+	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			if grid[i][j] == 0 {
 				continue
@@ -55,7 +68,7 @@ func GetMaximumGold(grid [][]int) int {
 			wg.Add(1)
 			go func(i, j int) {
 				defer wg.Done()
-				c <- initPath(grid).explorePath(grid, i, j, m, n)
+				c <- copyPath(reference, m, n).explorePath(grid, i, j, m, n)
 			}(i, j)
 		}
 	}
