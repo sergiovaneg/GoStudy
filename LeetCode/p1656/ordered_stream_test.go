@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1656"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1656"
 )
 
 func TestOrderedStream(t *testing.T) {

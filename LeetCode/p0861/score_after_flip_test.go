@@ -3,7 +3,7 @@ package p0861_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0861"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0861"
 )
 
 func TestMatrixScore(t *testing.T) {

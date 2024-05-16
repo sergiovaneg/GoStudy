@@ -3,7 +3,7 @@ package p2997_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2997"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2997"
 )
 
 func TestMinOperations(t *testing.T) {

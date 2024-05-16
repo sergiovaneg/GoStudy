@@ -3,7 +3,7 @@ package p1219_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1219"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1219"
 )
 
 func TestGetMaximumGold(t *testing.T) {

@@ -3,8 +3,8 @@ package p1669_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1669"
-	lists "github.com/sergiovaneg/GO_leetcode/Lists"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1669"
+	lists "github.com/sergiovaneg/GoStudy/Lists"
 )
 
 func TestMergeInBetween(t *testing.T) {

@@ -3,7 +3,7 @@ package p1544_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1544"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1544"
 )
 
 func TestMakeGood(t *testing.T) {

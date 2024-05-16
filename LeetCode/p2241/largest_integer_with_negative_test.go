@@ -3,7 +3,7 @@ package p2241_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2241"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2241"
 )
 
 func TestFindMaxK(t *testing.T) {

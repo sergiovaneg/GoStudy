@@ -3,7 +3,7 @@ package p0005_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0005"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0005"
 )
 
 func TestLongestPalindrome(t *testing.T) {

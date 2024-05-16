@@ -3,7 +3,7 @@ package p0041_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0041"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0041"
 )
 
 func TestFirstMissingPositive(t *testing.T) {

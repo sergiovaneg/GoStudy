@@ -3,8 +3,8 @@ package p0988_test
 import (
 	"testing"
 
-	binarytree "github.com/sergiovaneg/GO_leetcode/BinaryTree"
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0988"
+	binarytree "github.com/sergiovaneg/GoStudy/BinaryTree"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0988"
 )
 
 const null = binarytree.NullInt

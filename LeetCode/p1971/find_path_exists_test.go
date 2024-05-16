@@ -3,7 +3,7 @@ package p1971_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1971"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1971"
 )
 
 func TestValidPath(t *testing.T) {

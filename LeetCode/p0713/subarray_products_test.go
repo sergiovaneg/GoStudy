@@ -3,7 +3,7 @@ package p0713_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0713"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0713"
 )
 
 func TestNumSubarrayProductLessThanK(t *testing.T) {

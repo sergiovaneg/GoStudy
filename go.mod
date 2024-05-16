@@ -1,3 +1,3 @@
-module github.com/sergiovaneg/GO_leetcode
+module github.com/sergiovaneg/GoStudy
 
 go 1.21.8

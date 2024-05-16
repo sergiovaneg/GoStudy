@@ -3,7 +3,7 @@ package p2485_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2485"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2485"
 )
 
 func TestPivotInteger(t *testing.T) {

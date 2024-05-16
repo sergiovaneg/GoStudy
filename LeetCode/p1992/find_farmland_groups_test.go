@@ -3,7 +3,7 @@ package p1992_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1992"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1992"
 )
 
 func TestFindFarmland(t *testing.T) {

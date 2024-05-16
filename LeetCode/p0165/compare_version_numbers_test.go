@@ -3,7 +3,7 @@ package p0165_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0165"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0165"
 )
 
 func TestCompareVersion(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0050"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0050"
 )
 
 const eps float64 = 1e-6

@@ -3,7 +3,7 @@ package p0402_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0402"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0402"
 )
 
 func TestRemoveKDigits(t *testing.T) {

@@ -3,7 +3,7 @@ package p0011_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0011"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0011"
 )
 
 func TestMaxArea(t *testing.T) {

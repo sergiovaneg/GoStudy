@@ -3,7 +3,7 @@ package p0029_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0029"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0029"
 )
 
 func TestDivide(t *testing.T) {

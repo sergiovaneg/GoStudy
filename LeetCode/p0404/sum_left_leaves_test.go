@@ -3,8 +3,8 @@ package p0404_test
 import (
 	"testing"
 
-	binarytree "github.com/sergiovaneg/GO_leetcode/BinaryTree"
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0404"
+	binarytree "github.com/sergiovaneg/GoStudy/BinaryTree"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0404"
 )
 
 type TreeNode = binarytree.TreeNode[int]

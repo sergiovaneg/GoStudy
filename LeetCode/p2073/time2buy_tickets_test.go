@@ -3,7 +3,7 @@ package p2073_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2073"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2073"
 )
 
 func TestTimeRequiredToBuy(t *testing.T) {

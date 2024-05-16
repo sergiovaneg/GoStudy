@@ -3,7 +3,7 @@ package p0004_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0004"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0004"
 )
 
 func TestFindMedianSortedArrays(t *testing.T) {

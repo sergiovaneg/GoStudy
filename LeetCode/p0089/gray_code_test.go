@@ -4,7 +4,7 @@ import (
 	"math/bits"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0089"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0089"
 )
 
 func checkBitDiff(a, b int) int {

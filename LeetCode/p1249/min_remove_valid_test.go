@@ -3,7 +3,7 @@ package p1249_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1249"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1249"
 )
 
 func TestMinRemoveToMakeValid(t *testing.T) {

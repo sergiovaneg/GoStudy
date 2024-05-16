@@ -3,7 +3,7 @@ package p0205_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0205"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0205"
 )
 
 func TestIsIsomorphic(t *testing.T) {

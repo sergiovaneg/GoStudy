@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0950"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0950"
 )
 
 func TestDeckRevealedIncreasing(t *testing.T) {

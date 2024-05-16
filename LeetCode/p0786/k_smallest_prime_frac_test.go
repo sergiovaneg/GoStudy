@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0786"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0786"
 )
 
 func TestKSmallestFrac(t *testing.T) {

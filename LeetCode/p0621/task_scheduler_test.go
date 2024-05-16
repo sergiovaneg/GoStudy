@@ -3,7 +3,7 @@ package p0621_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0621"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0621"
 )
 
 func TestLeastInterval(t *testing.T) {

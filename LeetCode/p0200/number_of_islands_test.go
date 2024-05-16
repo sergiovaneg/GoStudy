@@ -3,7 +3,7 @@ package p0200_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0200"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0200"
 )
 
 func TestNumIslands(t *testing.T) {

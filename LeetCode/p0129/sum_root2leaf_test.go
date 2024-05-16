@@ -3,8 +3,8 @@ package p0129_test
 import (
 	"testing"
 
-	binarytree "github.com/sergiovaneg/GO_leetcode/BinaryTree"
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0129"
+	binarytree "github.com/sergiovaneg/GoStudy/BinaryTree"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0129"
 )
 
 func TestSumNumbers(t *testing.T) {

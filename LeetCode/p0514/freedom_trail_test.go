@@ -3,7 +3,7 @@ package p0514_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0514"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0514"
 )
 
 func TestFindRotateSteps(t *testing.T) {

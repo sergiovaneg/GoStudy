@@ -3,7 +3,7 @@ package p1915_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1915"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1915"
 )
 
 func TestWonderfulSubstrings(t *testing.T) {

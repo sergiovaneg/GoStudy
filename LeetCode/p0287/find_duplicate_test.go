@@ -3,7 +3,7 @@ package p0287_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0287"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0287"
 )
 
 func TestFindDuplicate(t *testing.T) {

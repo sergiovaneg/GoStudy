@@ -3,7 +3,7 @@ package p1137_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1137"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1137"
 )
 
 func TestTribonacci(t *testing.T) {

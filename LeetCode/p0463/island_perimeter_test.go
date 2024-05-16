@@ -3,7 +3,7 @@ package p0463_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0463"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0463"
 )
 
 func TestIslandPerimeter(t *testing.T) {

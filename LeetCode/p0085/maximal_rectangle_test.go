@@ -3,7 +3,7 @@ package p0085_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0085"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0085"
 )
 
 func TestMaximalRectangle(t *testing.T) {

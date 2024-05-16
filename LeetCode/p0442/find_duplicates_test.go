@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0442"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0442"
 )
 
 func TestFindDuplicates(t *testing.T) {

@@ -3,7 +3,7 @@ package p1700_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1700"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1700"
 )
 
 func TestCountStudents(t *testing.T) {

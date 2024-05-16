@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0026"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0026"
 )
 
 func TestRemoveDuplicates(t *testing.T) {

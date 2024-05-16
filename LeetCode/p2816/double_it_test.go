@@ -3,8 +3,8 @@ package p2816_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2816"
-	lists "github.com/sergiovaneg/GO_leetcode/Lists"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2816"
+	lists "github.com/sergiovaneg/GoStudy/Lists"
 )
 
 type ListNode = lists.SinglyLinkedNode[int]

@@ -3,8 +3,8 @@ package p0234_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0234"
-	lists "github.com/sergiovaneg/GO_leetcode/Lists"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0234"
+	lists "github.com/sergiovaneg/GoStudy/Lists"
 )
 
 func TestIsPalindrome(t *testing.T) {

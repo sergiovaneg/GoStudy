@@ -3,7 +3,7 @@ package p0930_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0930"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0930"
 )
 
 func TestTrap(t *testing.T) {

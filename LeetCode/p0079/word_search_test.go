@@ -3,7 +3,7 @@ package p0079_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0079"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0079"
 )
 
 func TestExist(t *testing.T) {

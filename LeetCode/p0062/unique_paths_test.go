@@ -3,7 +3,7 @@ package p0062_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0062"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0062"
 )
 
 func TestUniquePaths(t *testing.T) {

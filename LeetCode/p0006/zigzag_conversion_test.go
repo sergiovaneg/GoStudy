@@ -3,7 +3,7 @@ package p0006_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0006"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0006"
 )
 
 func TestConvert(t *testing.T) {

@@ -3,7 +3,7 @@ package p0058_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0058"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0058"
 )
 
 func TestLengthOfLastWord(t *testing.T) {

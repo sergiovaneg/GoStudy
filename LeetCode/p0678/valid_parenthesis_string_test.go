@@ -3,7 +3,7 @@ package p0678_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0678"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0678"
 )
 
 func TestCheckValidString(t *testing.T) {

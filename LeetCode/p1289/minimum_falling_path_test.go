@@ -3,7 +3,7 @@ package p1289_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p1289"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p1289"
 )
 
 func TestMinFallingPathSum(t *testing.T) {

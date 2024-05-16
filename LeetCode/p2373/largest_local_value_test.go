@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2373"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2373"
 )
 
 func TestLargestLocal(t *testing.T) {

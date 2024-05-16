@@ -3,8 +3,8 @@ package p0623_test
 import (
 	"testing"
 
-	binarytree "github.com/sergiovaneg/GO_leetcode/BinaryTree"
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0623"
+	binarytree "github.com/sergiovaneg/GoStudy/BinaryTree"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0623"
 )
 
 type TreeNode = binarytree.TreeNode[int]

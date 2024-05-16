@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0834"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0834"
 )
 
 func TestSumOfDistancesInTree(t *testing.T) {

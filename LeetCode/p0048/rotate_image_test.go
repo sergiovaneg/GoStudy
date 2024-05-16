@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0048"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0048"
 )
 
 func TestRotate(t *testing.T) {

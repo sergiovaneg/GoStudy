@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0506"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0506"
 )
 
 func TestFindRelativeRanks(t *testing.T) {

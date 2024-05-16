@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0238"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0238"
 )
 
 func TestProductExceptSelf(t *testing.T) {

@@ -1,6 +1,6 @@
 package p0002
 
-import lists "github.com/sergiovaneg/GO_leetcode/Lists"
+import lists "github.com/sergiovaneg/GoStudy/Lists"
 
 type ListNode = lists.SinglyLinkedNode[int]
 

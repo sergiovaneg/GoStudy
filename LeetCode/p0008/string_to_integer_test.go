@@ -3,7 +3,7 @@ package p0008_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0008"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0008"
 )
 
 func TestMyAtoi(t *testing.T) {

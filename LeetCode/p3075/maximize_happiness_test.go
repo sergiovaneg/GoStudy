@@ -3,7 +3,7 @@ package p3075_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p3075"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p3075"
 )
 
 func TestMaximumHappinessSum(t *testing.T) {

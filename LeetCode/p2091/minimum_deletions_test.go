@@ -3,7 +3,7 @@ package p2091_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2091"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2091"
 )
 
 func TestSortEvenOdd(t *testing.T) {

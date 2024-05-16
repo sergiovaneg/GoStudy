@@ -3,7 +3,7 @@ package p0881_test
 import (
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p0881"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p0881"
 )
 
 func TestNumRescueBoats(t *testing.T) {

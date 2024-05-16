@@ -1,6 +1,6 @@
 package p0129
 
-import binarytree "github.com/sergiovaneg/GO_leetcode/BinaryTree"
+import binarytree "github.com/sergiovaneg/GoStudy/BinaryTree"
 
 type TreeNode = binarytree.TreeNode[int]
 

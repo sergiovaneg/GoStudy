@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sergiovaneg/GO_leetcode/LeetCode/p2164"
+	"github.com/sergiovaneg/GoStudy/LeetCode/p2164"
 )
 
 func TestSortEvenOdd(t *testing.T) {
