@@ -43,9 +43,14 @@ func main() {
 	}
 
 	res0 := 0
+	mA, mB := make(map[int]int, n), make(map[int]int, n)
 	for idx := 0; idx < n; idx++ {
 		a := listA[idx]
 		b := listB[idx]
+
+		mA[a]++
+		mB[b]++
+
 		if a > b {
 			res0 += a - b
 		} else {
@@ -56,35 +61,8 @@ func main() {
 	fmt.Println(res0)
 
 	res1 := 0
-	for i, j := 0, 0; i < n && j < n; {
-		for j < n && listA[i] > listB[j] {
-			j++
-		}
-		if j == n {
-			break
-		}
-		for i < n && listA[i] < listB[j] {
-			i++
-		}
-		if i == n {
-			break
-		}
-
-		if listA[i] != listB[j] {
-			continue
-		}
-
-		ref, na, nb := listA[i], 0, 0
-		for i < n && listA[i] == ref {
-			na++
-			i++
-		}
-		for j < n && listB[j] == ref {
-			nb++
-			j++
-		}
-
-		res1 += ref * na * nb
+	for k, v := range mA {
+		res1 += k * v * mB[k]
 	}
 
 	fmt.Println(res1)
