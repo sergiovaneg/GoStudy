@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/sergiovaneg/GoStudy/utils"
 )
@@ -19,7 +19,7 @@ func sortedInsert[T cmp.Ordered](ts []T, t T) []T {
 }
 
 func getValues(line string) [2]int {
-	matches := regexp.MustCompile("[0-9]+").FindAllString(line, 2)
+	matches := strings.Split(line, "   ")
 	a, _ := strconv.Atoi(matches[0])
 	b, _ := strconv.Atoi(matches[1])
 	return [2]int{a, b}
