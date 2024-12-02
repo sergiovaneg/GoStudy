@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -22,30 +23,30 @@ func parseLevel(line string) []int {
 	return levels
 }
 
-func isSafeLevel(level []int, tol bool) bool {
-	dir := 0
-	if level[1]-level[0] > 0 {
+func isSafeLevel(level []int, tol int) bool {
+	dir, n := 0, len(level)
+	if n < 3 {
+		return true
+	}
+
+	if level[1] > level[0] {
 		dir = 1
 	} else {
 		dir = -1
 	}
 
-	for n, idx := len(level), 1; idx < n; idx++ {
+	for idx := 1; idx < n; idx++ {
 		criterion := dir * (level[idx] - level[idx-1])
 		if criterion < 1 || criterion > 3 {
-			if !tol {
+			if tol == 0 {
 				return false
 			}
 
-			aux_0 := make([]int, n-1)
-			copy(aux_0[:idx-1], level[:idx-1])
-			copy(aux_0[idx-1:], level[idx:])
+			aux_0, aux_1 := slices.Clone(level), slices.Clone(level)
+			aux_0 = slices.Delete(aux_0, idx-1, idx)
+			aux_1 = slices.Delete(aux_1, idx, idx+1)
 
-			aux_1 := make([]int, n-1)
-			copy(aux_1[:idx], level[:idx])
-			copy(aux_1[idx:], level[idx+1:])
-
-			return isSafeLevel(aux_0, false) || isSafeLevel(aux_1, false)
+			return isSafeLevel(aux_0, tol-1) || isSafeLevel(aux_1, tol-1)
 		}
 	}
 
@@ -69,7 +70,7 @@ func main() {
 
 	res0 := 0
 	for _, level := range levels {
-		if isSafeLevel(level, false) {
+		if isSafeLevel(level, 0) {
 			res0++
 		}
 	}
@@ -78,7 +79,7 @@ func main() {
 
 	res1 := 0
 	for _, level := range levels {
-		if isSafeLevel(level, true) {
+		if isSafeLevel(level, 1) {
 			res1++
 		}
 	}
