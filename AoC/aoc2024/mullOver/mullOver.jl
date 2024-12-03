@@ -1,19 +1,19 @@
 corruptedMemory = readlines("./input.txt") |> join
 
-function processMemory(line::String)::Int
+function processMemory(mem::String)::Int
   return sum(
-    match -> prod(e -> parse(Int, e), match.captures),
-    eachmatch(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)", line)
+    match -> parse(Int, match[1]) * parse(Int, match[2]),
+    eachmatch(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)", mem)
   )
 end
 
 println(corruptedMemory |> processMemory)
 
-function filterMemory(line::String)::String
+function filterMemory(mem::String)::String
   return join(
     map(
       match -> match.match,
-      eachmatch(r"(?<=do\(\)).+?(?=don't\(\))", "do()" * line * "don't()")
+      eachmatch(r"(?<=do\(\)).+?(?=don't\(\))", "do()" * mem * "don't()")
     )
   )
 end
