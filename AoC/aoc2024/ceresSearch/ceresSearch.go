@@ -74,22 +74,16 @@ func main() {
 	}
 
 	res_0 := 0
+	res_1 := 0
 	for i, line := range lines {
 		for j, g := range line {
 			if g == 'X' {
 				res_0 += lines.checkStraight(i, j)
-			}
-		}
-	}
-	println(res_0)
-
-	res_1 := 0
-	for i, line := range lines {
-		for j, g := range line {
-			if g == 'A' && lines.checkCross(i, j) {
+			} else if g == 'A' && lines.checkCross(i, j) {
 				res_1++
 			}
 		}
 	}
+	println(res_0)
 	println(res_1)
 }
