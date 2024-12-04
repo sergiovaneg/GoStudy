@@ -1,21 +1,22 @@
-corruptedMemory = readlines("./input.txt") |> join
+const reA = r"mul\((\d{1,3}),(\d{1,3})\)"
+const reB = r"(?<=do\(\)).+?(?=don't\(\))"
+corruptedMemory = read("./input.txt", String)
 
 function processMemory(mem)
   return sum(
-    match -> parse(Int, match[1]) * parse(Int, match[2]),
-    eachmatch(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)", mem)
-  )
+    eachmatch(reA, mem)
+  ) do match
+    parse(Int, match[1]) * parse(Int, match[2])
+  end
 end
 
 println(corruptedMemory |> processMemory)
 
 function filterMemory(mem)
-  return join(
-    map(
-      match -> match.match,
-      eachmatch(r"(?<=do\(\)).+?(?=don't\(\))", "do()" * mem * "don't()")
-    )
-  )
+  return map(
+    match -> match.match,
+    eachmatch(reB, "do()" * mem * "don't()")
+  ) |> join
 end
 
 println(corruptedMemory |> filterMemory |> processMemory)
