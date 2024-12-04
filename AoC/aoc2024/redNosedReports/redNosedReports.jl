@@ -1,6 +1,6 @@
 levels = readlines("./input.txt")
 
-function parseLevel(level::String)::Vector{Int}
+function parseLevel(level)
   res = map(
     num -> parse(Int, num, base=10),
     split(level, " ")
@@ -13,7 +13,7 @@ parsed_levels = map(
   levels
 )
 
-function isSafeLevel(level::Vector{Int}, tol::Int)::Bool
+function isSafeLevel(level, tol)
   deltas = diff(level)
   idx = findfirst(
     d -> d == 0 || abs(d) > 3 || sign(d) != sign(deltas[1]),
@@ -34,7 +34,7 @@ function isSafeLevel(level::Vector{Int}, tol::Int)::Bool
   end
 end
 
-function isSafeLevel(level::Vector{Int})::Bool
+function isSafeLevel(level)
   return isSafeLevel(level, 0)
 end
 

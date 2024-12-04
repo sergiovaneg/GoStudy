@@ -1,6 +1,6 @@
 corruptedMemory = readlines("./input.txt") |> join
 
-function processMemory(mem::String)::Int
+function processMemory(mem)
   return sum(
     match -> parse(Int, match[1]) * parse(Int, match[2]),
     eachmatch(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)", mem)
@@ -9,7 +9,7 @@ end
 
 println(corruptedMemory |> processMemory)
 
-function filterMemory(mem::String)::String
+function filterMemory(mem)
   return join(
     map(
       match -> match.match,
