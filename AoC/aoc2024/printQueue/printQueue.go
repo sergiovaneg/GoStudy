@@ -56,26 +56,22 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	n, _ := utils.LineCounter(file)
 
-	var i int
 	r := make(RuleSet, n)
-	for i = 0; scanner.Scan(); i++ {
+	for scanner.Scan() {
 		if scanner.Text() == "" {
 			break
 		}
 		r.update(scanner.Text())
 	}
 
-	updates := make([][]int, 0, n-i)
-	for scanner.Scan() {
-		updates = append(updates, parseUpdate(scanner.Text()))
-	}
-
 	res_0, res_1 := 0, 0
-	for _, update := range updates {
+	var update []int
+	for scanner.Scan() {
+		update = parseUpdate(scanner.Text())
 		if slices.IsSortedFunc(update, r.compare) {
 			res_0 += update[len(update)/2]
 		} else {
-			slices.SortFunc(update, r.compare)
+			slices.SortStableFunc(update, r.compare)
 			res_1 += update[len(update)/2]
 		}
 	}
