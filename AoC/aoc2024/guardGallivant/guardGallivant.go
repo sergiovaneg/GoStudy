@@ -98,18 +98,32 @@ func main() {
 	r := generateRecord(s0, lab)
 	println(r.countUnique())
 
-	res_1 := 0
+	c := make(chan int, len(lab))
 	for i := range lab {
-		for j := range lab {
-			if lab[i][j] == '.' {
-				lab[i][j] = '#'
-				if r = generateRecord(s0, lab); r[State{}] == 0 {
-					res_1++
-				}
-				lab[i][j] = '.'
-			}
+		labMirror := make([][]byte, len(lab))
+		for j, row := range lab {
+			labMirror[j] = make([]byte, len(row))
+			copy(labMirror[j], row)
 		}
+		go func() {
+			res := 0
+			for j := range labMirror[i] {
+				if labMirror[i][j] == '.' {
+					labMirror[i][j] = '#'
+					if r = generateRecord(s0, labMirror); r[State{}] == 0 {
+						res++
+					}
+					labMirror[i][j] = '.'
+				}
+			}
+			c <- res
+		}()
 	}
 
+	res_1 := 0
+	for range lab {
+		res_1 += <-c
+	}
+	close(c)
 	println(res_1)
 }
