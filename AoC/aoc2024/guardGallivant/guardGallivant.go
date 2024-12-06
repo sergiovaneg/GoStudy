@@ -9,10 +9,12 @@ import (
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
-type State [2][2]int
-type Record map[State]int
+const workerQuota = 128
 
-func (s State) canAdvance(lab [][]byte) int {
+type State [2][2]int
+type Record map[State]bool
+
+func (s State) canAdvance(lab [][]byte, obstacle [2]int) int {
 	i, j := s[0][0]+s[1][0], s[0][1]+s[1][1]
 	if i < 0 || j < 0 {
 		return -1
@@ -23,50 +25,49 @@ func (s State) canAdvance(lab [][]byte) int {
 		return -1
 	}
 
-	if lab[i][j] == '#' {
+	if lab[i][j] == '#' || [2]int{i, j} == obstacle {
 		return 0
 	}
 
 	return 1
 }
 
-func (s State) takeStep(lab [][]byte) State {
-	flag := s.canAdvance(lab)
-
-	if flag == -1 {
-		return State{}
+func (s State) takeStep(lab [][]byte, obstacle [2]int) State {
+	switch s.canAdvance(lab, obstacle) {
+	case 0:
+		s[1][0], s[1][1] = s[1][1], -s[1][0]
+	case 1:
+		s[0][0], s[0][1] = s[0][0]+s[1][0], s[0][1]+s[1][1]
+	default:
+		s = State{}
 	}
-
-	if flag == 1 {
-		return State{
-			[2]int{s[0][0] + s[1][0], s[0][1] + s[1][1]},
-			s[1],
-		}
-	}
-
-	s[1][0], s[1][1] = s[1][1], -s[1][0]
 	return s
 }
 
-func generateRecord(s State, lab [][]byte) Record {
+func generateRecord(s State, lab [][]byte, obstacle [2]int) Record {
 	r := make(Record)
-	for r[s] < 1 {
-		r[s]++
-		s = s.takeStep(lab)
+	for !r[s] {
+		r[s] = true
+		s = s.takeStep(lab, obstacle)
 	}
 
 	return r
 }
 
-func (r Record) countUnique() int {
+func (r Record) getUnique() [][2]int {
 	delete(r, State{})
-	uniquePositions := make(map[[2]int]bool, len(r))
+	uniqueR := make(map[[2]int]bool, len(r))
 
 	for s := range r {
-		uniquePositions[s[0]] = true
+		uniqueR[s[0]] = true
 	}
 
-	return len(uniquePositions)
+	uniquePositions := make([][2]int, 0, len(uniqueR))
+	for pos := range uniqueR {
+		uniquePositions = append(uniquePositions, pos)
+	}
+
+	return uniquePositions
 }
 
 func parseInitialState(lab [][]byte) State {
@@ -95,35 +96,32 @@ func main() {
 	}
 
 	s0 := parseInitialState(lab)
-	r := generateRecord(s0, lab)
-	println(r.countUnique())
+	r := generateRecord(s0, lab, [2]int{})
+	uniquePos := r.getUnique()
+	println(len(uniquePos))
 
-	c := make(chan int, len(lab))
-	for i := range lab {
-		labMirror := make([][]byte, len(lab))
-		for j, row := range lab {
-			labMirror[j] = make([]byte, len(row))
-			copy(labMirror[j], row)
-		}
+	nCandidates := len(uniquePos)
+	nPartitions := nCandidates / workerQuota
+	if nCandidates%nPartitions > 0 {
+		nPartitions++
+	}
+
+	c := make(chan int, nPartitions)
+	for idx := 0; idx < nCandidates; idx += workerQuota {
 		go func() {
-			res := 0
-			for j := range labMirror[i] {
-				if labMirror[i][j] == '.' {
-					labMirror[i][j] = '#'
-					if r = generateRecord(s0, labMirror); r[State{}] == 0 {
-						res++
-					}
-					labMirror[i][j] = '.'
+			acc := 0
+			for _, cand := range uniquePos[idx:min(idx+workerQuota, nCandidates)] {
+				if rec := generateRecord(s0, lab, cand); !rec[State{}] {
+					acc++
 				}
 			}
-			c <- res
+			c <- acc
 		}()
 	}
 
-	res_1 := 0
-	for range lab {
-		res_1 += <-c
+	res := 0
+	for idx := 0; idx < nPartitions; idx++ {
+		res += <-c
 	}
-	close(c)
-	println(res_1)
+	println(res)
 }
