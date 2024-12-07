@@ -61,32 +61,36 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 	n, _ := utils.LineCounter(file)
-	operandsList := make([][]int, 0, n)
 
+	cA, cB := make(chan int, n), make(chan int, n)
 	for scanner.Scan() {
-		operandsList = append(operandsList, parseOperands(scanner.Text()))
+		go func(line string) {
+			operands := parseOperands(line)
+			if testOperators(
+				operands[0], operands[1], operands[2:],
+				[]Operator{Prod, Sum}) {
+				cA <- operands[0]
+				cB <- 0
+			} else if testOperators(
+				operands[0], operands[1], operands[2:],
+				[]Operator{Concat, Prod, Sum}) {
+				cA <- 0
+				cB <- operands[0]
+			} else {
+				cA <- 0
+				cB <- 0
+			}
+		}(scanner.Text())
 	}
 
-	res := 0
-	failedIdxList := make([]int, 0, n)
-	for idx, operands := range operandsList {
-		if testOperators(
-			operands[0], operands[1], operands[2:],
-			[]Operator{Prod, Sum}) {
-			res += operands[0]
-		} else {
-			failedIdxList = append(failedIdxList, idx)
-		}
+	resA, resB := 0, 0
+	for range n {
+		resA += <-cA
+		resB += <-cB
 	}
-	println(res)
+	close(cA)
+	close(cB)
 
-	for _, idx := range failedIdxList {
-		operands := operandsList[idx]
-		if testOperators(
-			operands[0], operands[1], operands[2:],
-			[]Operator{Concat, Prod, Sum}) {
-			res += operands[0]
-		}
-	}
-	println(res)
+	println(resA)
+	println(resA + resB)
 }
