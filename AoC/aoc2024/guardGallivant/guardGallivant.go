@@ -100,6 +100,9 @@ func main() {
 	uniquePos := r.getUnique()
 	println(len(uniquePos))
 
+	if i := slices.Index(uniquePos, s0[0]); i != -1 {
+		uniquePos = slices.Delete(uniquePos, i, i+1)
+	}
 	nCandidates := len(uniquePos)
 	nPartitions := nCandidates / workerQuota
 	if nCandidates%nPartitions > 0 {
