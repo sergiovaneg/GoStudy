@@ -37,8 +37,8 @@ def process_pair(xy0, xy1, lb, ub):
 def process_group(antennae, lb, ub):
   res = [
       tuple(e)
-      for pair in combinations(antennae, 2)
-      for e in process_pair(pair[0][1:], pair[1][1:], lb, ub)
+      for cxy0, cxy1 in combinations(antennae, 2)
+      for e in process_pair(cxy0[1:], cxy1[1:], lb, ub)
   ]
   return set(res)
 
