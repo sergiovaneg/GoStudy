@@ -97,7 +97,7 @@ func main() {
 		}(coords)
 	}
 
-	uRA, uRB := make(map[Coord]bool), make(map[Coord]bool)
+	uRA, uRB := make(map[Coord]bool, m*n), make(map[Coord]bool, m*n)
 	for range antennaeRecord {
 		for coord := range <-cA {
 			uRA[coord] = true
