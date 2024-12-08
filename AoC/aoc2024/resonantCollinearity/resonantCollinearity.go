@@ -81,9 +81,9 @@ func main() {
 			}
 
 			if antennaeRecord[c] == nil {
-				antennaeRecord[c] = []Coord{[2]int{i, j}}
+				antennaeRecord[c] = []Coord{{i, j}}
 			} else {
-				antennaeRecord[c] = append(antennaeRecord[c], [2]int{i, j})
+				antennaeRecord[c] = append(antennaeRecord[c], Coord{i, j})
 			}
 		}
 	}
