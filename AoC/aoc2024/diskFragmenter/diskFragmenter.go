@@ -20,38 +20,37 @@ func getBlocks(fragmentedDisk string) ([][2]int, [][2]int) {
 	return res[0], res[1]
 }
 
-func compactHash(fragmentedDisk string) int {
-	l := len(fragmentedDisk)
-	acc, idx := 0, 0
-	i, j := 0, l-2+l&0x01
-	head_id, tail_id := 0, (l-1)>>1
+func hashContiguous(id, pos, cap int) int {
+	return (id * cap * (pos<<1 + cap - 1)) >> 1
+}
 
-	queue := fragmentedDisk[j] - '0'
-	for ; i < j; i++ {
-		aux := fragmentedDisk[i] - '0'
-		if i&0x01 == 0 {
-			for range aux {
-				acc += idx * head_id
-				idx++
-			}
-			head_id++
+func compactHash(fragmentedDisk string) int {
+	files, freeBlocks := getBlocks(fragmentedDisk)
+	slices.Reverse(files)
+
+	acc, id := 0, len(files)-1
+	for files[0][0] > freeBlocks[0][0] {
+		cap, pos := min(files[0][1], freeBlocks[0][1]), freeBlocks[0][0]
+		acc += hashContiguous(id, pos, cap)
+
+		if files[0][1] == cap {
+			files = files[1:]
+			id--
 		} else {
-			for range aux {
-				if queue == 0 {
-					j -= 2
-					tail_id--
-					queue = fragmentedDisk[j] - '0'
-				}
-				acc += idx * tail_id
-				idx++
-				queue--
-			}
+			files[0][1] -= cap
+		}
+
+		if freeBlocks[0][1] == cap {
+			freeBlocks = freeBlocks[1:]
+		} else {
+			freeBlocks[0][0] += cap
+			freeBlocks[0][1] -= cap
 		}
 	}
 
-	for range queue {
-		acc += idx * tail_id
-		idx++
+	for _, file := range files {
+		acc += hashContiguous(id, file[0], file[1])
+		id--
 	}
 
 	return acc
@@ -68,8 +67,9 @@ func blockCompactHash(fragmentedDisk string) int {
 			freeBlocks,
 			func(free [2]int) bool {
 				return free[1] >= file[1]
-			}); idx != -1 && freeBlocks[idx][0] > file[0] {
+			}); idx != -1 && freeBlocks[idx][0] < file[0] {
 			file[0] = freeBlocks[idx][0]
+
 			if freeBlocks[idx][1] == file[1] {
 				freeBlocks = slices.Delete(freeBlocks, idx, idx+1)
 			} else {
@@ -78,7 +78,7 @@ func blockCompactHash(fragmentedDisk string) int {
 			}
 		}
 
-		acc += (id * file[1] * (file[0]<<1 + file[1] - 1)) >> 1
+		acc += hashContiguous(id, file[0], file[1])
 	}
 
 	return acc
