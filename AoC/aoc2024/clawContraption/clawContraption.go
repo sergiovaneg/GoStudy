@@ -12,6 +12,9 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+const EPS = 1e-7
+const corrFactor = 1e13
+
 func parseMachine(machine [3]string) (a mat.Matrix, b mat.Vector) {
 	dRe := regexp.MustCompile(`\d+`)
 	var nums [6]float64
@@ -37,24 +40,33 @@ func parseMachine(machine [3]string) (a mat.Matrix, b mat.Vector) {
 }
 
 func getIntegerSolution(a mat.Matrix, x, b mat.Vector) int {
-	m, n := int(math.Round(x.AtVec(0))), int(math.Round(x.AtVec(1)))
-	x1, y1 := int(a.At(0, 2)), int(a.At(0, 3))
-	x2, y2 := int(a.At(1, 2)), int(a.At(1, 3))
-	xp, yp := int(b.AtVec(2)), int(b.AtVec(3))
+	m, n := math.Round(x.AtVec(0)), math.Round(x.AtVec(1))
 
-	if x1*m+x2*n != xp {
+	bRound := mat.NewVecDense(4, nil)
+	bRound.SetVec(0, m)
+	bRound.SetVec(1, n)
+
+	bRound.MulVec(a, bRound)
+	bRound.SubVec(bRound, b)
+
+	if math.Abs(bRound.AtVec(2)) > EPS {
+		return 0
+	}
+	if math.Abs(bRound.AtVec(3)) > EPS {
 		return 0
 	}
 
-	if y1*m+y2*n != yp {
-		return 0
-	}
-
-	return 3*m + n
+	return 3*int(m) + int(n)
 }
 
-func solveMinTokens(a mat.Matrix, b mat.Vector) int {
+func solveMinTokens(a mat.Matrix, b mat.Vector, correctionFlag bool) int {
 	x := mat.NewVecDense(4, nil)
+
+	if correctionFlag {
+		aux := mat.NewVecDense(4, []float64{0, 0, corrFactor, corrFactor})
+		aux.AddVec(b, aux)
+		b = aux
+	}
 
 	if err := x.SolveVec(a, b); err != nil {
 		fmt.Println(err)
@@ -73,16 +85,22 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	machine, result := [3]string{}, 0
+	machine, r0, r1 := [3]string{}, 0, 0
 	for idx := 0; scanner.Scan(); idx++ {
 		if scanner.Text() == "" {
-			result += solveMinTokens(parseMachine(machine))
+			a, b := parseMachine(machine)
+			r0 += solveMinTokens(a, b, false)
+			r1 += solveMinTokens(a, b, true)
 			idx = -1
 		} else {
 			machine[idx] = scanner.Text()
 		}
 	}
-	result += solveMinTokens(parseMachine(machine))
 
-	println(result)
+	a, b := parseMachine(machine)
+	r0 += solveMinTokens(a, b, false)
+	r1 += solveMinTokens(a, b, true)
+
+	println(r0)
+	println(r1)
 }
