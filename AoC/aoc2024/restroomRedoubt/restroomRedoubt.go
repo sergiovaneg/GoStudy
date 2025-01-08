@@ -12,16 +12,13 @@ import (
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
-const StepLimit = 10000
+const W, H = 101, 103
 
 type Robot struct {
 	x0 [2]int
 	v  [2]int
 }
 type robotSlice []Robot
-
-const W, H = 101, 103
-
 type safetyArr [4]int
 
 func moveNSteps(r Robot, n int) Robot {
@@ -74,7 +71,8 @@ func getQuadrantIdx(r Robot) int {
 
 func parseRobot(line string) Robot {
 	var values [4]int
-	for idx, num := range regexp.MustCompile(`-{0,1}\d+`).FindAllString(line, 4) {
+	for idx, num := range regexp.MustCompile(
+		`-{0,1}\d+`).FindAllString(line, 4) {
 		aux, _ := strconv.Atoi(num)
 		values[idx] = aux
 	}
@@ -99,22 +97,20 @@ func (sArr safetyArr) getSafety() (r int) {
 	return
 }
 
-func (rSlice robotSlice) printIfValid(step int) bool {
-	pat := make([][]rune, H)
+func (rSlice robotSlice) printIfValid(step int) (found bool) {
+	pat := make([][]byte, H)
 	for i := range H {
-		pat[i] = make([]rune, W)
+		pat[i] = make([]byte, W)
 		for j := range W {
 			pat[i][j] = '.'
 		}
 	}
-
 	for _, r := range rSlice {
-		pat[r.x0[1]][r.x0[0]] = 'X'
+		pat[r.x0[1]][r.x0[0]] = '#'
 	}
 
-	var found bool
 	for _, line := range pat {
-		if strings.Contains(string(line), strings.Repeat("X", 30)) {
+		if strings.Contains(string(line), strings.Repeat("#", 10)) {
 			found = true
 			break
 		}
@@ -125,13 +121,14 @@ func (rSlice robotSlice) printIfValid(step int) bool {
 		defer file.Close()
 
 		w := bufio.NewWriter(file)
+		defer w.Flush()
+
 		for _, line := range pat {
 			fmt.Fprintln(w, string(line))
 		}
-		w.Flush()
 	}
 
-	return found
+	return
 }
 
 func main() {
