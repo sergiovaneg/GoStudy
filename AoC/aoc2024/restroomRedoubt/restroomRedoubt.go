@@ -8,11 +8,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
 const W, H = 101, 103
+const WORKERS = 4
 
 type Robot struct {
 	x0 [2]int
@@ -131,6 +133,29 @@ func (rSlice robotSlice) printIfValid(step int) (found bool) {
 	return
 }
 
+func pooledAdvance(rArr robotSlice, nWorkers int) robotSlice {
+	var wg sync.WaitGroup
+
+	nRobots := len(rArr)
+	poolSize := nRobots / nWorkers
+	if nRobots%nWorkers > 0 {
+		poolSize++
+	}
+
+	wg.Add(nWorkers)
+	for lb := 0; lb < nRobots; lb += poolSize {
+		go func() {
+			defer wg.Done()
+			for idx, ub := lb, min(nRobots, lb+poolSize); idx < ub; idx++ {
+				rArr[idx] = moveNSteps(rArr[idx], 1)
+			}
+		}()
+	}
+	wg.Wait()
+
+	return rArr
+}
+
 func main() {
 	file, err := os.Open("./input.txt")
 	if err != nil {
@@ -153,8 +178,6 @@ func main() {
 
 	os.MkdirAll("./prints/", os.ModePerm)
 	for step := 0; !rArr.printIfValid(step); step++ {
-		for idx := range rArr {
-			rArr[idx] = moveNSteps(rArr[idx], 1)
-		}
+		rArr = pooledAdvance(rArr, WORKERS)
 	}
 }
