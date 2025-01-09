@@ -9,11 +9,12 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/sergiovaneg/GoStudy/utils"
 	"gonum.org/v1/gonum/mat"
 )
 
 const EPS = 1e-7
-const corrFactor = 1e13
+const correctionFactor = 1e13
 
 func parseMachine(machine [3]string) (a mat.Matrix, b mat.Vector) {
 	dRe := regexp.MustCompile(`\d+`)
@@ -63,7 +64,7 @@ func solveMinTokens(a mat.Matrix, b mat.Vector, correctionFlag bool) int {
 	x := mat.NewVecDense(4, nil)
 
 	if correctionFlag {
-		aux := mat.NewVecDense(4, []float64{0, 0, corrFactor, corrFactor})
+		aux := mat.NewVecDense(4, []float64{0, 0, correctionFactor, correctionFactor})
 		aux.AddVec(b, aux)
 		b = aux
 	}
@@ -84,22 +85,28 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	n, _ := utils.LineCounter(file)
+	nMachines := (n + 1) >> 2
 
-	machine, r0, r1 := [3]string{}, 0, 0
-	for idx := 0; scanner.Scan(); idx++ {
-		if scanner.Text() == "" {
-			a, b := parseMachine(machine)
-			r0 += solveMinTokens(a, b, false)
-			r1 += solveMinTokens(a, b, true)
-			idx = -1
-		} else {
+	machine := [3]string{}
+	c0, c1 := make(chan int, nMachines), make(chan int, nMachines)
+	for scanner.Scan() {
+		for idx := 0; idx < 3; idx++ {
 			machine[idx] = scanner.Text()
+			scanner.Scan()
 		}
+		a, b := parseMachine(machine)
+		func() {
+			c0 <- solveMinTokens(a, b, false)
+			c1 <- solveMinTokens(a, b, true)
+		}()
 	}
 
-	a, b := parseMachine(machine)
-	r0 += solveMinTokens(a, b, false)
-	r1 += solveMinTokens(a, b, true)
+	var r0, r1 int
+	for range nMachines {
+		r0 += <-c0
+		r1 += <-c1
+	}
 
 	println(r0)
 	println(r1)
