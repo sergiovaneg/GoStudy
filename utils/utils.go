@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 )
 
 type Integer interface {
@@ -102,4 +103,15 @@ func IPow[I Integer](a, b I) I {
 	}
 
 	return r
+}
+
+func SliceDifference[T comparable](a, b []T) []T {
+	c := make([]T, 0, len(a))
+	for _, elem := range a {
+		if !slices.Contains(b, elem) {
+			c = append(c, elem)
+		}
+	}
+
+	return c
 }
