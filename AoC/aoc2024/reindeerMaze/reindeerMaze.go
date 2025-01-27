@@ -51,12 +51,12 @@ func (tSelf *Traversed) merge(tOther Traversed) {
 
 func (pr ParallelRecord) getCandidateStates(s State) []State {
 	candidates := make([]State, 0)
-	x0 := s[0]
+	x0, v0 := s[0], s[1]
 	for _, dx := range [4]Coordinate{
 		{0, -1}, {0, 1}, {-1, 0}, {1, 0},
 	} {
 		x1 := Coordinate{x0[0] + dx[0], x0[1] + dx[1]}
-		if pr.m[x1[0]][x1[1]] == '#' {
+		if pr.m[x1[0]][x1[1]] == '#' || (v0[0] == -dx[0] && v0[1] == -dx[1]) {
 			continue
 		}
 		candidates = append(candidates, State{x1, dx})
@@ -112,6 +112,10 @@ func (pr *ParallelRecord) parallelBFS(w Walker, end Coordinate) {
 		pr.mu.Unlock()
 
 		candidateStates := pr.getCandidateStates(w.s)
+		if len(candidateStates) == 0 {
+			break
+		}
+
 		wg.Add(len(candidateStates) - 1)
 		for _, s := range candidateStates[1:] {
 			wNew := initWalker(
