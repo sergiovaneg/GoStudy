@@ -16,6 +16,7 @@
   // 	"description": "Log output to console"
   // }
   "Main": {
+    "scope": "go",
     "prefix": [
       "aoc"
     ],
@@ -30,6 +31,9 @@
       "",
       "scanner := bufio.NewScanner(file)",
       "n, _ := utils.LineCounter(file)",
+      "",
+      "for scanner.Scan(){",
+      "}",
       "}"
     ],
     "description": "Starting point for all AoC solutions."
