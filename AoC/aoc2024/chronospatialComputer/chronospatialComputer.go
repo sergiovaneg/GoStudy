@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -9,10 +10,11 @@ import (
 )
 
 type Registry [3]int
+type Program []int
 
 type State struct {
 	registry Registry
-	program  []int
+	program  Program
 	ptr      int
 	out      string
 }
@@ -23,7 +25,7 @@ type StopCondition func(State) bool
 
 func initState() (s State) {
 	return State{
-		program: make([]int, 0),
+		program: make(Program, 0),
 	}
 }
 
@@ -104,6 +106,96 @@ func (is InstructionSet) execute(s State, sc StopCondition) string {
 	return s.out[:len(s.out)-1]
 }
 
+func (program Program) toDotfile(filename string) {
+	f, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	w := bufio.NewWriter(f)
+	defer func() {
+		if err := w.Flush(); err != nil {
+			panic(err)
+		}
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	getOperandRune := func(x int) string {
+		if x <= 3 {
+			return string('0' + rune(x))
+		} else if x <= 6 {
+			return string('A' + rune(x-4))
+		} else {
+			return "🦊"
+		}
+	}
+
+	limitEndpoint := func(x int) any {
+		if x >= len(program) {
+			return "end"
+		}
+		return x
+	}
+
+	fmt.Fprintln(w, "strict digraph{")
+	fmt.Fprintln(w, "\tlayout=\"sfdp\";")
+	fmt.Fprintln(w, "\tStart -> 0;")
+
+	for i := 0; i < len(program); i += 2 {
+		switch program[i] {
+		case 0:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"A >>= %v\"];\n",
+				i, limitEndpoint(i+2), getOperandRune(program[i+1]))
+		case 1:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"B ^= %v\"];\n",
+				i, limitEndpoint(i+2), program[i+1])
+		case 2:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"B = %v & 0o7\"];\n",
+				i, limitEndpoint(i+2), getOperandRune(program[i+1]))
+		case 3:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"if A == 0\"];\n",
+				i, limitEndpoint(i+2))
+			fmt.Fprintf(w, "\t%v -> %v [label=\"if A != 0\"];\n",
+				i, limitEndpoint(program[i+1]))
+		case 4:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"B ^= C\"];\n", i, limitEndpoint(i+2))
+		case 5:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"print(%v & 0o7)\"];\n",
+				i, limitEndpoint(i+2), getOperandRune(program[i+1]))
+		case 6:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"B = A >> %v\"];\n",
+				i, limitEndpoint(i+2), getOperandRune(program[i+1]))
+		case 7:
+			fmt.Fprintf(w, "\t%v -> %v [label=\"C = A >> %v\"];\n",
+				i, limitEndpoint(i+2), getOperandRune(program[i+1]))
+		}
+	}
+
+	fmt.Fprintln(w, "}")
+}
+
+func (p Program) recursiveSolve(level int, solution *int) bool {
+	bTarget, shift := p[level], level<<1+level
+
+	aRelevant := ((*solution) >> shift) & ^(0b111)
+
+	for aLevel := 0; aLevel < 8; aLevel++ {
+		aTest := aRelevant ^ aLevel
+		aTest = aLevel ^ 0b001 ^ (aTest >> (aLevel ^ 0b010))
+		if aTest&0b111 == bTarget {
+			*solution &= ^((0b111 ^ aLevel) << shift)
+			*solution |= aLevel << shift
+			if level == 0 || p.recursiveSolve(level-1, solution) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func main() {
 	file, err := os.Open("./input.txt")
 	if err != nil {
@@ -136,23 +228,10 @@ func main() {
 	is := initInstructionSet()
 	println(is.execute(s, nil))
 
-	lb := 0
-	for {
-		lb++
-		s.registry[0] = lb
-		out := is.execute(s,
-			func(s State) bool {
-				l1, l2 := len(programStr), len(s.out)
-				if l1 > l2 {
-					return !strings.HasPrefix(programStr, s.out)
-				} else {
-					return l2 > l1+1
-				}
-			})
+	s.program.toDotfile("./program.dot")
 
-		if out == programStr {
-			println(lb)
-			break
-		}
+	var aOpt int
+	if f := s.program.recursiveSolve(len(s.program)-1, &aOpt); f {
+		println(aOpt)
 	}
 }
