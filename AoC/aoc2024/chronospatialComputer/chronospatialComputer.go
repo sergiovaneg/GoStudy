@@ -106,7 +106,7 @@ func (is InstructionSet) execute(s State, sc StopCondition) string {
 	return s.out[:len(s.out)-1]
 }
 
-func (program Program) toDotfile(filename string) {
+func (program Program) toDot(filename string) {
 	f, err := os.Create(filename)
 	if err != nil {
 		panic(err)
@@ -228,7 +228,7 @@ func main() {
 	is := initInstructionSet()
 	println(is.execute(s, nil))
 
-	s.program.toDotfile("./program.dot")
+	s.program.toDot("./program.dot")
 
 	var aOpt int
 	if f := s.program.recursiveSolve(len(s.program)-1, &aOpt); f {
