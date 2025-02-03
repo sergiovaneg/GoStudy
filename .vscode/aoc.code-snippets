@@ -15,7 +15,7 @@
   // 	],
   // 	"description": "Log output to console"
   // }
-  "Main": {
+  "AoC": {
     "scope": "go",
     "prefix": [
       "aoc"
@@ -25,7 +25,7 @@
       "func main(){",
       "file, err := os.Open(\"./input.txt\")",
       "if err != nil {",
-      "log.Fatal(err)",
+      "panic(err)",
       "}",
       "defer file.Close()",
       "",
