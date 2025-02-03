@@ -13,25 +13,19 @@ import (
 type Record map[string]int
 
 func (r *Record) isValidPattern(pattern string, options [][]string) int {
-	if len(pattern) == 0 {
-		return 1
-	}
-	if val, exists := (*r)[pattern]; exists {
-		return val
-	}
-
 	count := 0
 	for _, flatOptions := range options {
 		for _, opt := range flatOptions {
-			newPattern, ok := strings.CutPrefix(pattern, opt)
+			subpattern, ok := strings.CutPrefix(pattern, opt)
 
 			if !ok {
 				continue
 			}
 
-			val := r.isValidPattern(newPattern, options)
-			if val > 0 {
+			if val, exists := (*r)[subpattern]; exists {
 				count += val
+			} else {
+				count += r.isValidPattern(subpattern, options)
 			}
 
 			break
@@ -72,8 +66,9 @@ func main() {
 	scanner.Scan()
 
 	for scanner.Scan() {
-		func(pattern string) {
+		go func(pattern string) {
 			r := make(Record)
+			r[""] = 1
 			c <- r.isValidPattern(pattern, options)
 		}(scanner.Text())
 	}
