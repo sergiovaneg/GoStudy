@@ -6,55 +6,73 @@ import (
 	"slices"
 )
 
+const THR = 100
+
 type Coordinate [2]int
+type Chain [2][2]int
 type Path []Coordinate
 
 func distance(a, b Coordinate) int {
 	var d int
 
 	for i := range 2 {
-		aux := a[i] - b[i]
-		if aux < 0 {
-			aux = -aux
+		if a[i] > b[i] {
+			d += a[i] - b[i]
+		} else {
+			d += b[i] - a[i]
 		}
-
-		d += aux
 	}
 
 	return d
 }
 
-func sortPath(unorderedPath Path, s Coordinate) Path {
+func (prev Chain) pathIndexer(x Coordinate) bool {
+	return distance(x, prev[1]) == 1 && x != prev[0]
+}
+
+func sortPath(unorderedPath Path, start Coordinate) Path {
 	n := len(unorderedPath)
-	path := make(Path, 2, n)
+	path := make(Path, n)
 
-	path[0] = s
-	j := slices.IndexFunc(
-		unorderedPath, func(x Coordinate) bool {
-			return distance(x, s) == 1
-		})
-	path[1] = unorderedPath[j]
+	path[0] = start
+	prev := Chain{start, start}
 
-	for i := 2; i < n; i++ {
-		j := slices.IndexFunc(unorderedPath, func(x Coordinate) bool {
-			return distance(x, path[i-1]) == 1 && x != path[i-2]
-		})
+	for i := 1; i < n; i++ {
+		j := slices.IndexFunc(unorderedPath, prev.pathIndexer)
+		path[i] = unorderedPath[j]
 
-		path = append(path, unorderedPath[j])
+		prev[0] = prev[1]
+		prev[1] = path[i]
 	}
 
 	return path
 }
 
-func countOptimalJumps(path Path, thr, jmp int) int {
-	res, n := 0, len(path)
-	for i := 0; i < n; i++ {
-		for j := i + thr; j < n; j++ {
-			d := distance(path[i], path[j])
-			if d <= jmp && j-i-d >= thr {
+func (path Path) countOptimalJumps(thr, jmp int) int {
+	n := len(path)
+	ub := n - thr
+
+	c := make(chan int, ub)
+	defer close(c)
+
+	spawnable := func(lb int) {
+		res := 0
+		for j := lb + thr; j < n; j++ {
+			d := distance(path[lb], path[j])
+			if d <= jmp && j-lb-d >= thr {
 				res++
 			}
 		}
+		c <- res
+	}
+
+	for i := range ub {
+		go spawnable(i)
+	}
+
+	res := 0
+	for range ub {
+		res += <-c
 	}
 
 	return res
@@ -73,18 +91,20 @@ func main() {
 	var s Coordinate
 	for i := 0; scanner.Scan(); i++ {
 		for j, r := range scanner.Text() {
-			if r != '#' {
-				aux := Coordinate{i, j}
-				path = append(path, aux)
-				if r == 'S' {
-					s = aux
-				}
+			if r == '#' {
+				continue
+			}
+
+			aux := Coordinate{i, j}
+			path = append(path, aux)
+			if r == 'S' {
+				s = aux
 			}
 		}
 	}
 
 	path = sortPath(path, s)
 
-	println(countOptimalJumps(path, 100, 2))
-	println(countOptimalJumps(path, 100, 20))
+	println(path.countOptimalJumps(THR, 2))  // Part A
+	println(path.countOptimalJumps(THR, 20)) // Part B
 }
