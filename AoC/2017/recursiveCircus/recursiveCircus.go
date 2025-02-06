@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -11,53 +12,50 @@ import (
 type Program struct {
 	name     string
 	weight   int
-	parent   *Program
 	children []*Program
 }
 
 func parseTree(scanner *bufio.Scanner) *Program {
 	auxMap := make(map[string]*Program)
+	var rName string
 
 	for scanner.Scan() {
-		parentString := strings.Split(
+		pString := strings.Split(
 			strings.SplitN(scanner.Text(), " -> ", 1)[0], " ")
-		parentName := parentString[0]
-		parentWeight, _ := strconv.Atoi(parentString[1][1 : len(parentString[1])-1])
+		pName := pString[0]
+		pWeight, _ := strconv.Atoi(pString[1][1 : len(pString[1])-1])
 
-		parentNode, ok := auxMap[parentName]
+		pNode, ok := auxMap[pName]
 		if !ok {
-			parentNode = &Program{name: parentName}
-			auxMap[parentName] = parentNode
+			pNode = &Program{name: pName}
+			auxMap[pName] = pNode
 		}
-		parentNode.weight = parentWeight
+		pNode.weight = pWeight
 
-		childrenNames := strings.Split(scanner.Text(), " -> ")[1:]
-		if len(childrenNames) == 0 {
+		cNames := strings.Split(scanner.Text(), " -> ")[1:]
+		if len(cNames) == 0 {
 			continue
 		}
 
-		childrenNames = strings.Split(childrenNames[0], ", ")
-		parentNode.children = make([]*Program, len(childrenNames))
+		cNames = strings.Split(cNames[0], ", ")
+		pNode.children = make([]*Program, len(cNames))
 
-		for i, childName := range childrenNames {
-			childNode, ok := auxMap[childName]
+		for i, cName := range cNames {
+			cNode, ok := auxMap[cName]
 			if !ok {
-				childNode = &Program{name: childName}
-				auxMap[childName] = childNode
+				cNode = &Program{name: cName}
+				auxMap[cName] = cNode
 			}
 
-			parentNode.children[i] = childNode
-			childNode.parent = parentNode
+			pNode.children[i] = cNode
+		}
+
+		if rName == "" || slices.Contains(cNames, rName) {
+			rName = pName
 		}
 	}
 
-	for _, node := range auxMap {
-		if node.parent == nil {
-			return node
-		}
-	}
-
-	return nil
+	return auxMap[rName]
 }
 
 func (node *Program) getTotalWeight() int {
