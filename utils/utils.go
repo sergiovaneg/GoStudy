@@ -115,3 +115,11 @@ func SliceDifference[T comparable](a, b []T) []T {
 
 	return c
 }
+
+func AbsInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+
+	return x
+}
