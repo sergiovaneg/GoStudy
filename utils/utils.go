@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"cmp"
 	"io"
 	"log"
 	"os"
@@ -116,7 +117,38 @@ func SliceDifference[T comparable](a, b []T) []T {
 	return c
 }
 
-func AbsInt(x int) int {
+func SortedUniqueInsert[T cmp.Ordered](x []T, e T) ([]T, bool) {
+	i, ok := slices.BinarySearch(x, e)
+
+	if !ok {
+		x = slices.Insert(x, i, e)
+	}
+
+	return x, ok
+}
+
+func SortedMerge[T cmp.Ordered](a, b []T) []T {
+	la, lb := len(a), len(b)
+	c := make([]T, 0, la+lb)
+	ia, ib := 0, 0
+
+	for ia < la && ib < lb {
+		if a[ia] < b[ib] {
+			c = append(c, a[ia])
+			ia++
+		} else {
+			c = append(c, b[ib])
+			ib++
+		}
+	}
+
+	c = append(c, a[ia:]...)
+	c = append(c, b[ib:]...)
+
+	return c
+}
+
+func AbsInt[T Integer](x T) T {
 	if x < 0 {
 		return -x
 	}
