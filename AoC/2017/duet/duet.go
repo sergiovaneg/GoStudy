@@ -5,28 +5,28 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
 const nThreads = 2
-const bufferSize = 10000000
 
 type Registry map[string]int
 
 type Scheduler struct {
-	locker [nThreads]*sync.Mutex
-	cnt    [nThreads]int
-	queue  [nThreads]chan int
+	cnt   [nThreads]int
+	flags [nThreads]bool
+	ptrs  [nThreads]int
+	reg   [nThreads]Registry
+	queue [nThreads][]int
 }
 
 func initScheduler() Scheduler {
 	var s Scheduler
 
 	for i := range nThreads {
-		s.queue[i] = make(chan int, bufferSize)
-		s.locker[i] = new(sync.Mutex)
+		s.reg[i] = make(Registry)
+		s.queue[i] = make([]int, 0)
 	}
 
 	return s
@@ -84,50 +84,61 @@ func singleExecution(instructions []string) int {
 	return r[""]
 }
 
-func (s *Scheduler) run(instructions []string, src, dst int) {
-	r := make(Registry)
-	ptr, n := 0, len(instructions)
-
-	for ptr >= 0 && ptr < n {
-		inst := strings.Split(instructions[ptr], " ")
-
-		switch strings.ToLower(inst[0]) {
-		case "rcv":
-			if len(s.queue[src]) == 0 {
-				isLocked := !s.locker[dst].TryLock()
-				if isLocked {
-					ptr = n
-					break
-				}
-				s.locker[dst].Unlock()
-			}
-
-			s.locker[src].Lock()
-			aux, ok := <-s.queue[src]
-			s.locker[src].Unlock()
-
-			if !ok {
-				ptr = n
-			} else {
-				r[inst[1]] = aux
-			}
-
-		case "snd":
-			s.queue[dst] <- r.query(inst[1])
-			s.cnt[src]++
-		case "jgz":
-			if r.query(inst[1]) > 0 {
-				ptr += r.query(inst[2]) - 1
-			}
-		default:
-			r.update(inst)
+func (s Scheduler) isDeadlocked() bool {
+	for _, f := range s.flags {
+		if f {
+			return false
 		}
-
-		ptr++
 	}
 
-	close(s.queue[dst])
-	s.locker[src].Lock()
+	return true
+}
+
+func concurrentExecution(instructions []string) int {
+	s := initScheduler()
+	n := len(instructions)
+
+	for {
+		s.flags = [nThreads]bool{}
+
+		for src := range nThreads {
+			if s.ptrs[src] < 0 || s.ptrs[src] >= n {
+				continue
+			}
+
+			inst := strings.Split(instructions[s.ptrs[src]], " ")
+
+			switch strings.ToLower(inst[0]) {
+			case "rcv":
+				if len(s.queue[src]) == 0 {
+					continue
+				}
+				s.reg[src][inst[1]] = s.queue[src][0]
+				s.queue[src] = s.queue[src][1:]
+			case "snd":
+				s.queue[(src+1)%nThreads] = append(
+					s.queue[(src+1)%nThreads],
+					s.reg[src].query(inst[1]),
+				)
+				s.cnt[src]++
+			case "jgz":
+				if s.reg[src].query(inst[1]) > 0 {
+					s.ptrs[src] += s.reg[src].query(inst[2]) - 1
+				}
+			default:
+				s.reg[src].update(inst)
+			}
+
+			s.ptrs[src]++
+			s.flags[src] = true
+		}
+
+		if s.isDeadlocked() {
+			break
+		}
+	}
+
+	return s.cnt[nThreads-1]
 }
 
 func main() {
@@ -147,22 +158,5 @@ func main() {
 	}
 
 	println(singleExecution(instructions))
-
-	s := initScheduler()
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		s.run(instructions, 0, 1)
-		wg.Done()
-	}()
-
-	go func() {
-		s.run(instructions, 1, 0)
-		wg.Done()
-	}()
-
-	wg.Wait()
-	println(s.cnt[1])
+	println(concurrentExecution(instructions))
 }
