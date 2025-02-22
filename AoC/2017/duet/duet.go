@@ -5,8 +5,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/sergiovaneg/GoStudy/utils"
 )
 
 const nThreads = 2
@@ -14,19 +12,19 @@ const nThreads = 2
 type Registry map[string]int
 
 type Scheduler struct {
-	cnt   [nThreads]int
-	flags [nThreads]bool
-	ptrs  [nThreads]int
-	reg   [nThreads]Registry
-	queue [nThreads][]int
+	cnt    [nThreads]int
+	ptrs   [nThreads]int
+	regs   [nThreads]Registry
+	queues [nThreads][]int
 }
 
 func initScheduler() Scheduler {
 	var s Scheduler
 
 	for i := range nThreads {
-		s.reg[i] = make(Registry)
-		s.queue[i] = make([]int, 0)
+		s.regs[i] = make(Registry)
+		s.regs[i]["p"] = i
+		s.queues[i] = make([]int, 0)
 	}
 
 	return s
@@ -84,22 +82,12 @@ func singleExecution(instructions []string) int {
 	return r[""]
 }
 
-func (s Scheduler) isDeadlocked() bool {
-	for _, f := range s.flags {
-		if f {
-			return false
-		}
-	}
-
-	return true
-}
-
 func concurrentExecution(instructions []string) int {
 	s := initScheduler()
 	n := len(instructions)
 
 	for {
-		s.flags = [nThreads]bool{}
+		isDeadlocked := true
 
 		for src := range nThreads {
 			if s.ptrs[src] < 0 || s.ptrs[src] >= n {
@@ -110,30 +98,30 @@ func concurrentExecution(instructions []string) int {
 
 			switch strings.ToLower(inst[0]) {
 			case "rcv":
-				if len(s.queue[src]) == 0 {
+				if len(s.queues[src]) == 0 {
 					continue
 				}
-				s.reg[src][inst[1]] = s.queue[src][0]
-				s.queue[src] = s.queue[src][1:]
+				s.regs[src][inst[1]] = s.queues[src][0]
+				s.queues[src] = s.queues[src][1:]
 			case "snd":
-				s.queue[(src+1)%nThreads] = append(
-					s.queue[(src+1)%nThreads],
-					s.reg[src].query(inst[1]),
+				s.queues[(src+1)%nThreads] = append(
+					s.queues[(src+1)%nThreads],
+					s.regs[src].query(inst[1]),
 				)
 				s.cnt[src]++
 			case "jgz":
-				if s.reg[src].query(inst[1]) > 0 {
-					s.ptrs[src] += s.reg[src].query(inst[2]) - 1
+				if s.regs[src].query(inst[1]) > 0 {
+					s.ptrs[src] += s.regs[src].query(inst[2]) - 1
 				}
 			default:
-				s.reg[src].update(inst)
+				s.regs[src].update(inst)
 			}
 
 			s.ptrs[src]++
-			s.flags[src] = true
+			isDeadlocked = false
 		}
 
-		if s.isDeadlocked() {
+		if isDeadlocked {
 			break
 		}
 	}
@@ -149,12 +137,11 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	n, _ := utils.LineCounter(file)
 
-	instructions := make([]string, n)
+	instructions := make([]string, 0)
 
-	for idx := 0; scanner.Scan(); idx++ {
-		instructions[idx] = scanner.Text()
+	for scanner.Scan() {
+		instructions = append(instructions, scanner.Text())
 	}
 
 	println(singleExecution(instructions))
