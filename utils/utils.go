@@ -155,3 +155,19 @@ func AbsInt[T Integer](x T) T {
 
 	return x
 }
+
+func ISqrt[T Integer](x T) T {
+	if x <= 1 {
+		return x
+	}
+
+	x0 := x >> 1
+	x1 := (x0 + x/x0) >> 1
+
+	for x1 < x0 {
+		x0 = x1
+		x1 = (x0 + x/x0) >> 1
+	}
+
+	return x0
+}
