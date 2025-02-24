@@ -27,7 +27,7 @@ func parseParticle(line string) Particle {
 	return z
 }
 
-func (z Particle) manhattanAcceleration() int {
+func (z Particle) manhattanAcc() int {
 	var res int
 	for _, ax := range z {
 		res += utils.AbsInt(ax[2])
@@ -36,62 +36,60 @@ func (z Particle) manhattanAcceleration() int {
 }
 
 func findIntegerRoots(a, b [3]int) []int {
-	var delta [3]int
+	// x(t) = (a/2)t^2 + (v0+a/2)t + x0
+	// -> 2x(t) = at^2 + (2v0+a)t + 2x0
+	// Same roots, but avoids truncation
+	var p [3]int
+	p[0] = (a[0] - b[0]) << 1             // 2c
+	p[1] = (a[1]-b[1])<<1 + (a[2] - b[2]) // 2b
+	p[2] = a[2] - b[2]                    // 2a
 
-	for i := range 3 {
-		delta[i] = a[i] - b[i]
-	}
-
-	if delta[2] == 0 {
-		if delta[1] == 0 || delta[0]%delta[1] != 0 {
+	// Linear case (no acceleration)
+	if p[2] == 0 {
+		if p[1] == 0 || p[0]%p[1] != 0 {
 			return []int{}
 		}
-		return []int{-delta[0] / delta[1]}
+		return []int{-p[0] / p[1]}
 	}
 
-	discriminant := delta[1]*delta[1] - delta[2]*delta[0]<<1
+	discriminant := p[1]*p[1] - p[2]*p[0]<<2
 
-	if discriminant < 0 {
+	if discriminant < 0 { // No real roots
 		return []int{}
 	}
 
-	if discriminant == 0 {
-		return []int{-delta[1] / delta[2]}
+	if discriminant == 0 { // One real root
+		return []int{-p[1] / (p[2] << 1)}
 	}
 
+	// Two real roots
 	dSqrt := utils.ISqrt(discriminant)
-	t1 := (-delta[1] - dSqrt) / delta[2]
-	t2 := (-delta[1] + dSqrt) / delta[2]
-
-	d1 := delta[2]*t1*t1>>1 + delta[1]*t1 + delta[0]
-	d2 := delta[2]*t2*t2>>1 + delta[1]*t2 + delta[0]
-	println(d1)
-	println(d2)
+	t1 := (-p[1] - dSqrt) / (p[2] << 1)
+	t2 := (-p[1] + dSqrt) / (p[2] << 1)
 
 	return []int{t1, t2}
 }
 
 func testRoot(a, b [3]int, t int) bool {
-	if t < 0 {
+	if t < 0 { // Negative time not allowed
 		return false
 	}
 
-	var d [3]int
+	// Same rationale
+	var p [3]int
+	p[0] = (a[0] - b[0]) << 1             // 2c
+	p[1] = (a[1]-b[1])<<1 + (a[2] - b[2]) // 2b
+	p[2] = a[2] - b[2]                    // 2a
 
-	for i := range 3 {
-		d[i] = a[i] - b[i]
-	}
-
-	distance := ((d[2]*t*t)>>1 + d[1]*t + d[0])
-	return distance == 0
+	doubleDist := (p[2]*t*t + p[1]*t + p[0])
+	return doubleDist == 0
 }
 
 func findCollisions(id int, particles []Particle) []Collision {
 	collisions := make([]Collision, 0)
 
 	a := particles[id]
-	for i := id + 1; i < len(particles); i++ {
-		b := particles[i]
+	for i, b := range particles[id+1:] {
 		times := findIntegerRoots(a[0], b[0])
 
 		for _, t := range times {
@@ -107,7 +105,7 @@ func findCollisions(id int, particles []Particle) []Collision {
 			if ok {
 				collisions = append(collisions, Collision{
 					t:   t,
-					ids: [2]int{id, i},
+					ids: [2]int{id, id + i + 1},
 				})
 			}
 		}
@@ -121,36 +119,39 @@ func resolveCollisions(particles []Particle) int {
 	c := make(chan []Collision, n)
 
 	for i := range n {
-		func(id int) {
+		go func(id int) {
 			c <- findCollisions(id, particles)
 		}(i)
 	}
 
 	groupedCollisions := make(map[int][]Collision)
+	sortedTimes := make([]int, 0)
 	for range particles {
 		collisions := <-c
 		for _, collision := range collisions {
 			groupedCollisions[collision.t] = append(
 				groupedCollisions[collision.t], collision)
+
+			sortedTimes, _ = utils.SortedUniqueInsert(
+				sortedTimes, collision.t)
 		}
 	}
-
-	sortedTimes := make([]int, 0)
-	for k := range groupedCollisions {
-		sortedTimes = append(sortedTimes, k)
-	}
-	slices.Sort(sortedTimes)
 
 	mask := make([]bool, n)
 	for _, t := range sortedTimes {
 		newlyDestroyed := make([]int, 0)
+
 		for _, collision := range groupedCollisions[t] {
 			if mask[collision.ids[0]] || mask[collision.ids[1]] {
+				// Already destroyed in earlier collision
 				continue
 			}
 
 			newlyDestroyed = append(
-				newlyDestroyed, collision.ids[0], collision.ids[1])
+				newlyDestroyed,
+				collision.ids[0],
+				collision.ids[1],
+			)
 		}
 
 		for _, id := range newlyDestroyed {
@@ -158,14 +159,14 @@ func resolveCollisions(particles []Particle) int {
 		}
 	}
 
-	cnt := 0
+	remaining := 0
 	for _, destroyed := range mask {
 		if !destroyed {
-			cnt++
+			remaining++
 		}
 	}
 
-	return cnt
+	return remaining
 }
 
 func main() {
@@ -181,12 +182,15 @@ func main() {
 	particles := make([]Particle, 0, n)
 
 	for scanner.Scan() {
-		particles = append(particles, parseParticle(scanner.Text()))
+		particles = append(
+			particles, parseParticle(scanner.Text()))
 	}
 
-	minAccParticle := slices.MinFunc(particles, func(a, b Particle) int {
-		return a.manhattanAcceleration() - b.manhattanAcceleration()
-	})
+	minAccParticle := slices.MinFunc(
+		particles,
+		func(a, b Particle) int {
+			return a.manhattanAcc() - b.manhattanAcc()
+		})
 	println(slices.Index(particles, minAccParticle))
 
 	println(resolveCollisions(particles))
