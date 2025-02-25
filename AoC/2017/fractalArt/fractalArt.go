@@ -14,7 +14,7 @@ const targetA = 5
 const targetB = 18
 
 type Fractal [][]byte
-type Rules map[string]*Fractal
+type Ruleset map[string]*Fractal
 
 // From a 4x4 seed to the following (isolated) 3 steps of seeds
 // 4x4 -> 6x6 -> 9x9 -> 12x12 (9 * 4x4)
@@ -22,10 +22,10 @@ type State map[string]int
 type DPMemory map[string][3]State
 type DynamicProgram struct {
 	memory DPMemory
-	rules  Rules
+	rules  Ruleset
 }
 
-func (f Fractal) hMirror() Fractal {
+func (f Fractal) mirror() Fractal {
 	fNew := make(Fractal, len(f))
 
 	for i, row := range f {
@@ -36,7 +36,7 @@ func (f Fractal) hMirror() Fractal {
 	return fNew
 }
 
-func (f Fractal) lRotate() Fractal {
+func (f Fractal) rotate() Fractal {
 	n := len(f)
 	fNew := makeEmpty(n)
 
@@ -69,12 +69,12 @@ func deserialize(serial string) Fractal {
 	return f
 }
 
-func (r *Rules) transform(f Fractal) Fractal {
+func (r *Ruleset) transform(f Fractal) Fractal {
 	if out, ok := (*r)[f.serialize()]; ok {
 		return *out
 	}
 
-	f0, f1 := f, f.hMirror()
+	f0, f1 := f, f.mirror()
 	var fOut *Fractal
 	validSerials := []string{}
 
@@ -88,8 +88,8 @@ func (r *Rules) transform(f Fractal) Fractal {
 			fOut = aux
 		}
 
-		f0 = f0.lRotate()
-		f1 = f1.lRotate()
+		f0 = f0.rotate()
+		f1 = f1.rotate()
 	}
 
 	for _, serial := range validSerials {
@@ -99,7 +99,7 @@ func (r *Rules) transform(f Fractal) Fractal {
 	return *fOut
 }
 
-func (r Rules) getInitialState(seed string) State {
+func (r Ruleset) getInitialState(seed string) State {
 	if len(seed) != 11 {
 		panic("Invalid seed; initial matrix must be 3x3.")
 	}
@@ -240,7 +240,7 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	n, _ := utils.LineCounter(file)
 
-	r := make(Rules, n)
+	r := make(Ruleset, n)
 
 	for scanner.Scan() {
 		kv := strings.Split(scanner.Text(), " => ")
