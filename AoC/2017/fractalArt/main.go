@@ -4,14 +4,13 @@ import (
 	"bufio"
 	"os"
 
+	"github.com/sergiovaneg/GoStudy/AoC/2017/fractalArt/fractals"
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
 const SEED = ".#./..#/###"
 const targetA = 5
 const targetB = 18
-
-var Run func(string, int, []string) int
 
 func main() {
 	file, err := os.Open("./input.txt")
@@ -29,6 +28,6 @@ func main() {
 		lines = append(lines, scanner.Text())
 	}
 
-	println(Run(SEED, targetA, lines))
-	println(Run(SEED, targetB, lines))
+	println(fractals.NaiveSolver{}.Solve(SEED, targetA, lines))
+	println(fractals.ImprovedSolver{}.Solve(SEED, targetB, lines))
 }
