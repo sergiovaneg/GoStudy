@@ -5,10 +5,12 @@ import (
 	"strings"
 )
 
+type NaiveSolver struct{}
+
 type naiveFractal [][]byte
 type naiveRuleset map[string]naiveFractal
 
-func (f naiveFractal) serialize() string {
+func (f naiveFractal) serializeNaive() string {
 	rows := make([]string, len(f))
 
 	for i, row := range f {
@@ -18,29 +20,35 @@ func (f naiveFractal) serialize() string {
 	return strings.Join(rows, "/")
 }
 
-func (f *naiveFractal) deserialize(serial string) {
-	*f = make(naiveFractal, 0)
+func deserializeNaive(serial string) naiveFractal {
+	f := make(naiveFractal, 0)
 
 	for _, row := range strings.Split(serial, "/") {
-		*f = append(*f, []byte(row))
+		f = append(f, []byte(row))
 	}
+
+	return f
 }
 
-func (r *naiveRuleset) initRuleset(lines []string) {
-	*r = make(naiveRuleset)
+func initNaiveRuleset(lines []string) naiveRuleset {
+	r := make(naiveRuleset)
+
 	for _, line := range lines {
 		kv := strings.Split(line, " => ")
-		var f naiveFractal
-		f.deserialize(kv[1])
-		(*r)[kv[0]] = f
+		r[kv[0]] = deserializeNaive(kv[1])
 	}
+
+	return r
 }
 
-func (f *naiveFractal) makeEmpty(n int) {
-	*f = make(naiveFractal, n)
+func makeEmptyNaive(n int) naiveFractal {
+	f := make(naiveFractal, n)
+
 	for i := range n {
-		(*f)[i] = make([]byte, n)
+		f[i] = make([]byte, n)
 	}
+
+	return f
 }
 
 func (f naiveFractal) mirror() naiveFractal {
@@ -57,8 +65,7 @@ func (f naiveFractal) mirror() naiveFractal {
 func (f naiveFractal) rotate() naiveFractal {
 	n := len(f)
 
-	var fNew naiveFractal
-	fNew.makeEmpty(n)
+	fNew := makeEmptyNaive(n)
 
 	for i := range n {
 		for j := range n {
@@ -73,11 +80,11 @@ func (r naiveRuleset) transform(f naiveFractal) naiveFractal {
 	fm := f.mirror()
 
 	for range 4 {
-		if aux, ok := r[f.serialize()]; ok {
+		if aux, ok := r[f.serializeNaive()]; ok {
 			return aux
 		}
 
-		if aux, ok := r[fm.serialize()]; ok {
+		if aux, ok := r[fm.serializeNaive()]; ok {
 			return aux
 		}
 
@@ -89,8 +96,7 @@ func (r naiveRuleset) transform(f naiveFractal) naiveFractal {
 }
 
 func (f naiveFractal) getSubfractal(i, j, n int) naiveFractal {
-	var subFractal naiveFractal
-	subFractal.makeEmpty(n)
+	subFractal := makeEmptyNaive(n)
 
 	for k := range n {
 		copy(subFractal[k], f[n*i+k][n*j:])
@@ -115,8 +121,7 @@ func (r naiveRuleset) grow(f naiveFractal) naiveFractal {
 		s0, s1 = 3, 4
 	}
 
-	var fNext naiveFractal
-	fNext.makeEmpty(n * s1 / s0)
+	fNext := makeEmptyNaive(n * s1 / s0)
 
 	for i := range n / s0 {
 		for j := range n / s0 {
@@ -131,6 +136,7 @@ func (r naiveRuleset) grow(f naiveFractal) naiveFractal {
 
 func (f naiveFractal) count() int {
 	var res int
+
 	for _, row := range f {
 		for _, v := range row {
 			if v == '#' {
@@ -138,17 +144,13 @@ func (f naiveFractal) count() int {
 			}
 		}
 	}
+
 	return res
 }
 
-type NaiveSolver struct{}
-
 func (NaiveSolver) Solve(seed string, nIters int, lines []string) int {
-	var r naiveRuleset
-	r.initRuleset(lines)
-
-	var f naiveFractal
-	f.deserialize(seed)
+	r := initNaiveRuleset(lines)
+	f := deserializeNaive(seed)
 
 	for range nIters {
 		f = r.grow(f)
