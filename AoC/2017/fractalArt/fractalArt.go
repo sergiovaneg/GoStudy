@@ -29,5 +29,5 @@ func main() {
 	}
 
 	println(fractals.NaiveSolver{}.Solve(SEED, targetA, lines))
-	println(fractals.ImprovedSolver{}.Solve(SEED, targetB, lines))
+	println(fractals.NaiveSolver{}.Solve(SEED, targetB, lines))
 }

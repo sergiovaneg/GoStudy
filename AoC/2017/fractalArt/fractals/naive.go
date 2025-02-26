@@ -3,6 +3,7 @@ package fractals
 import (
 	"slices"
 	"strings"
+	"sync"
 )
 
 type NaiveSolver struct{}
@@ -121,15 +122,46 @@ func (r naiveRuleset) grow(f naiveFractal) naiveFractal {
 		s0, s1 = 3, 4
 	}
 
-	fNext := makeEmptyNaive(n * s1 / s0)
+	nSubfrac := n / s0
+	fNext := makeEmptyNaive(nSubfrac * s1)
 
-	for i := range n / s0 {
-		for j := range n / s0 {
+	for i := range nSubfrac {
+		for j := range nSubfrac {
 			fNext.setSubfractal(
 				i, j, s1,
 				r.transform(f.getSubfractal(i, j, s0)))
 		}
 	}
+
+	return fNext
+}
+
+func (r naiveRuleset) growParallel(f naiveFractal) naiveFractal {
+	n := len(f)
+
+	var s0, s1 int
+	if n%2 == 0 {
+		s0, s1 = 2, 3
+	} else {
+		s0, s1 = 3, 4
+	}
+
+	nSubfrac := n / s0
+	fNext := makeEmptyNaive(nSubfrac * s1)
+
+	var wg sync.WaitGroup
+	wg.Add(nSubfrac * nSubfrac)
+	for i := range nSubfrac {
+		for j := range nSubfrac {
+			go func(i, j int) {
+				fNext.setSubfractal(
+					i, j, s1,
+					r.transform(f.getSubfractal(i, j, s0)))
+				wg.Done()
+			}(i, j)
+		}
+	}
+	wg.Wait()
 
 	return fNext
 }
@@ -154,6 +186,17 @@ func (NaiveSolver) Solve(seed string, nIters int, lines []string) int {
 
 	for range nIters {
 		f = r.grow(f)
+	}
+
+	return f.count()
+}
+
+func (NaiveSolver) SolveParallel(seed string, nIters int, lines []string) int {
+	r := initNaiveRuleset(lines)
+	f := deserializeNaive(seed)
+
+	for range nIters {
+		f = r.growParallel(f)
 	}
 
 	return f.count()
