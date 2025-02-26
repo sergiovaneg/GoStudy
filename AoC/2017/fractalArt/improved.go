@@ -234,17 +234,19 @@ func (s State) count() int {
 	return res
 }
 
-func Run(seed string, nIters int, lines []string) int {
-	if nIters == 0 {
-		return State{seed: 1}.count()
-	}
+func init() {
+	Run = func(seed string, nIters int, lines []string) int {
+		if nIters == 0 {
+			return State{seed: 1}.count()
+		}
 
-	r := initRuleset(lines)
-	s := r.getInitialState(seed)
-	dp := DynamicProgram{
-		memory: make(DPMemory),
-		rules:  r,
-	}
+		r := initRuleset(lines)
+		s := r.getInitialState(seed)
+		dp := DynamicProgram{
+			memory: make(DPMemory),
+			rules:  r,
+		}
 
-	return dp.evolve(s, nIters-1).count()
+		return dp.evolve(s, nIters-1).count()
+	}
 }

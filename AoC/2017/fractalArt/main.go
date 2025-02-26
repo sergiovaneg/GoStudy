@@ -11,6 +11,8 @@ const SEED = ".#./..#/###"
 const targetA = 5
 const targetB = 18
 
+var Run func(string, int, []string) int
+
 func main() {
 	file, err := os.Open("./input.txt")
 	if err != nil {

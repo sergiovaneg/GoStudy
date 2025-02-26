@@ -138,13 +138,15 @@ func (f fractal) count() int {
 	return res
 }
 
-func Run(seed string, nIters int, lines []string) int {
-	r := initRuleset(lines)
-	f := deserialize(seed)
+func init() {
+	Run = func(seed string, nIters int, lines []string) int {
+		r := initRuleset(lines)
+		f := deserialize(seed)
 
-	for range nIters {
-		f = r.grow(f)
+		for range nIters {
+			f = r.grow(f)
+		}
+
+		return f.count()
 	}
-
-	return f.count()
 }
