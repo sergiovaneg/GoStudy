@@ -4,6 +4,8 @@ import "strings"
 
 type ImprovedSolver struct{}
 
+func (s ImprovedSolver) String() string { return "Improved Solver" }
+
 type improvedRuleset map[string]*naiveFractal
 type state map[string]int
 
@@ -51,6 +53,10 @@ func (dp *DynamicProgram) transform(f naiveFractal) naiveFractal {
 
 		f0 = f0.rotate()
 		f1 = f1.rotate()
+	}
+
+	if fOut == nil {
+		panic("Unregistered source pattern:" + f.serializeNaive())
 	}
 
 	for _, serial := range validSerials {

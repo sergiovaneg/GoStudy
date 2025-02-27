@@ -12,7 +12,7 @@ const SEED = ".#./..#/###"
 const targetA = 5
 const targetB = 18
 
-func main() {
+func getRules() []string {
 	file, err := os.Open("./input.txt")
 	if err != nil {
 		panic(err)
@@ -27,6 +27,12 @@ func main() {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
+
+	return lines
+}
+
+func main() {
+	lines := getRules()
 
 	println(fractals.NaiveSolver{}.Solve(SEED, targetA, lines))
 	println(fractals.NaiveSolver{}.Solve(SEED, targetB, lines))
