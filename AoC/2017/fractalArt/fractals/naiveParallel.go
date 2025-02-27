@@ -2,9 +2,11 @@ package fractals
 
 import "sync"
 
-type NaiveParallelSolver struct{}
+type NaiveConcurrentSolver struct{}
 
-func (NaiveParallelSolver) String() string { return "Naïve Parallel Solver" }
+func (NaiveConcurrentSolver) String() string {
+	return "Naïve Concurrent Solver"
+}
 
 func (r naiveRuleset) growParallel(f naiveFractal) naiveFractal {
 	n := len(f)
@@ -36,7 +38,8 @@ func (r naiveRuleset) growParallel(f naiveFractal) naiveFractal {
 	return fNext
 }
 
-func (NaiveParallelSolver) Solve(seed string, nIters int, lines []string) int {
+func (NaiveConcurrentSolver) Solve(
+	seed string, nIters int, lines []string) int {
 	r := initNaiveRuleset(lines)
 	f := deserializeNaive(seed)
 

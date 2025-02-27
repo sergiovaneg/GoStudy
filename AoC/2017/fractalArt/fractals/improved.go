@@ -21,72 +21,17 @@ func initDP(lines []string) DynamicProgram {
 	var dp DynamicProgram
 
 	dp.memory = make(DPMemory)
-	dp.rules = make(improvedRuleset)
-
-	for _, line := range lines {
-		kv := strings.Split(line, " => ")
-		dp.rules[kv[0]] = new(naiveFractal)
-		*dp.rules[kv[0]] = deserializeNaive(kv[1])
-	}
+	dp.rules = initImprovedRuleset(lines)
 
 	return dp
 }
 
 func (dp *DynamicProgram) transform(f naiveFractal) naiveFractal {
-	if out, ok := dp.rules[f.serializeNaive()]; ok {
-		return *out
-	}
-
-	f0, f1 := f, f.mirror()
-	var fOut *naiveFractal
-	validSerials := []string{}
-
-	for range 4 {
-		validSerials = append(validSerials, f0.serializeNaive(), f1.serializeNaive())
-		if aux, ok := dp.rules[f0.serializeNaive()]; ok {
-			fOut = aux
-		}
-
-		if aux, ok := dp.rules[f1.serializeNaive()]; ok {
-			fOut = aux
-		}
-
-		f0 = f0.rotate()
-		f1 = f1.rotate()
-	}
-
-	if fOut == nil {
-		panic("Unregistered source pattern:" + f.serializeNaive())
-	}
-
-	for _, serial := range validSerials {
-		dp.rules[serial] = fOut
-	}
-
-	return *fOut
+	return dp.rules.transform(f)
 }
 
 func (dp *DynamicProgram) grow(f naiveFractal) naiveFractal {
-	n := len(f)
-
-	var s0, s1 int
-	if n%2 == 0 {
-		s0, s1 = 2, 3
-	} else {
-		s0, s1 = 3, 4
-	}
-
-	fNext := makeEmptyNaive(n * s1 / s0)
-
-	for i := range n / s0 {
-		for j := range n / s0 {
-			fNext.setSubfractal(
-				i, j, s1,
-				dp.transform(f.getSubfractal(i, j, s0)))
-		}
-	}
-
-	return fNext
+	return dp.rules.grow(f)
 }
 
 func (dp *DynamicProgram) getInitialState(seed string) state {
