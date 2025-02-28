@@ -18,7 +18,7 @@ type DynamicProgram struct {
 	memory DPMemory
 }
 
-func (dp DynamicProgram) calculateEntry(serial string) state {
+func (dp *DynamicProgram) updateDPMemory(serial string) {
 	f0 := deserializeNaive(serial)
 
 	var f1 naiveFractal
@@ -65,7 +65,7 @@ func (dp DynamicProgram) calculateEntry(serial string) state {
 		}
 	}
 
-	return s
+	dp.memory[serial] = s
 }
 
 func initDP(lines []string) DynamicProgram {
@@ -102,13 +102,11 @@ func (dp *DynamicProgram) growThrice(serial string) state {
 		panic("Invalid entry requested; key must be a 4x4 matrix serial.")
 	}
 
-	if s, ok := dp.memory[serial]; ok {
-		return s
-	} else {
-		s = dp.calculateEntry(serial)
-		dp.memory[serial] = s
-		return s
+	if _, ok := dp.memory[serial]; !ok {
+		dp.updateDPMemory(serial)
 	}
+
+	return dp.memory[serial]
 }
 
 func (GroupedSolver) Solve(seed string, nIters int, lines []string) uint {
