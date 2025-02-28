@@ -62,8 +62,8 @@ def plot_fractal(data: np.ndarray, ax: Axis):
 
 
 # Seed
-fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-plot_fractal(deserialize_boolean(".#./..#/###"), ax)
+fig, axs = plt.subplots(1, 1, figsize=(6, 6))
+plot_fractal(deserialize_boolean(".#./..#/###"), axs)
 fig.tight_layout()
 fig.savefig("./figures/seed.png")
 
