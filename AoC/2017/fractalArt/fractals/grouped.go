@@ -9,26 +9,35 @@ type GroupedSolver struct{}
 func (s GroupedSolver) String() string { return "Grouped Solver" }
 
 type state map[string]uint
-
-// From a 4x4 seed to the following (isolated) 3 steps of seeds
-// 4x4 -> 6x6 -> 9x9 -> 12x12 (9 * 4x4)
-type DPMemory map[string]state
-type DynamicProgram struct {
-	rules  pointerRuleset
-	memory DPMemory
+type stateRuleset map[string]state
+type groupedRuleset struct {
+	rules      pointerRuleset
+	stateRules stateRuleset
 }
 
-func (dp *DynamicProgram) updateDPMemory(serial string) {
+func initGR(lines []string) groupedRuleset {
+	var dp groupedRuleset
+
+	dp.rules = initPointerRuleset(lines)
+	dp.stateRules = make(stateRuleset)
+
+	return dp
+}
+
+func (gr *groupedRuleset) updateSR(serial string) {
 	f0 := deserializeNaive(serial)
 
 	var f1 naiveFractal
+
+	// 3x3 -> 4x4
+	f0 = gr.rules.transform(f0)
 
 	// 4x4 -> 6x6
 	f1 = makeEmptyNaive(6)
 	for i := range 2 {
 		for j := range 2 {
 			subFractal := f0.getSubfractal(i, j, 2)
-			subFractal = dp.transform(subFractal)
+			subFractal = gr.rules.transform(subFractal)
 			f1.setSubfractal(i, j, 3, subFractal)
 		}
 	}
@@ -39,85 +48,43 @@ func (dp *DynamicProgram) updateDPMemory(serial string) {
 	for i := range 3 {
 		for j := range 3 {
 			subFractal := f0.getSubfractal(i, j, 2)
-			subFractal = dp.transform(subFractal)
+			subFractal = gr.rules.transform(subFractal)
 			f1.setSubfractal(i, j, 3, subFractal)
 		}
 	}
 	f0 = f1
 
-	// 9x9 -> 12x12
-	f1 = makeEmptyNaive(12)
-	for i := range 3 {
-		for j := range 3 {
-			subFractal := f0.getSubfractal(i, j, 3)
-			subFractal = dp.transform(subFractal)
-			f1.setSubfractal(i, j, 4, subFractal)
-		}
-	}
-	f0 = f1
-
-	// 12x12 -> 9 * 4x4
+	// 9x9 -> 9 * 3x3
 	s := make(state)
 	for i := range 3 {
 		for j := range 3 {
-			subfractal := f0.getSubfractal(i, j, 4)
+			subfractal := f0.getSubfractal(i, j, 3)
 			s[subfractal.serializeNaive()]++
 		}
 	}
 
-	dp.memory[serial] = s
+	gr.stateRules[serial] = s
 }
 
-func initDP(lines []string) DynamicProgram {
-	var dp DynamicProgram
-
-	dp.rules = initPointerRuleset(lines)
-	dp.memory = make(DPMemory)
-
-	return dp
-}
-
-func (dp DynamicProgram) transform(f naiveFractal) naiveFractal {
-	return dp.rules.transform(f)
-}
-
-func (dp DynamicProgram) grow(f naiveFractal) naiveFractal {
-	return dp.rules.grow(f)
-}
-
-func (dp DynamicProgram) getInitialState(seed string) state {
-	if len(seed) != 11 {
-		panic("Invalid seed; initial matrix must be 3x3.")
+func (gr *groupedRuleset) growThrice(serial string) state {
+	if _, ok := gr.stateRules[serial]; !ok {
+		gr.updateSR(serial)
 	}
 
-	f := deserializeNaive(seed)
-
-	return state{
-		dp.transform(f).serializeNaive(): 1,
-	}
-}
-
-func (dp *DynamicProgram) growThrice(serial string) state {
-	if len(serial) != 19 {
-		panic("Invalid entry requested; key must be a 4x4 matrix serial.")
-	}
-
-	if _, ok := dp.memory[serial]; !ok {
-		dp.updateDPMemory(serial)
-	}
-
-	return dp.memory[serial]
+	return gr.stateRules[serial]
 }
 
 func (GroupedSolver) Solve(seed string, nIters int, lines []string) uint {
+	if len(seed) != 11 {
+		panic("Invalid seed: serial should match a 3x3 fractal.")
+	}
+
 	if nIters == 0 {
 		return uint(strings.Count(seed, "#"))
 	}
 
-	dp := initDP(lines)
-
-	state0 := dp.getInitialState(seed)
-	nIters-- // We get the initial state by running a single iteration
+	dp := initGR(lines)
+	state0 := state{seed: 1}
 
 	for range nIters / 3 {
 		state1 := make(state)
@@ -136,7 +103,7 @@ func (GroupedSolver) Solve(seed string, nIters int, lines []string) uint {
 		f := deserializeNaive(serial0)
 
 		for range nIters % 3 {
-			f = dp.grow(f)
+			f = dp.rules.grow(f)
 		}
 
 		finalCount += cnt0 * f.count()

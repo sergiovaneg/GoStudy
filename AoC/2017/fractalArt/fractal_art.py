@@ -30,11 +30,12 @@ def deserialize(s: str) -> list[list[str]]:
 
 
 def mirror(f: list[list[str]]) -> list[list[str]]:
-  return [list(reversed(x)) for x in f]
+  return list(reversed(f))
 
 
 def rotate(f: list[list[str]]) -> list[list[str]]:
-  return [[f[j][i] for j in reversed(range(3))] for i in range(3)]
+  n = len(f)
+  return [[f[j][i] for j in reversed(range(n))] for i in range(n)]
 
 
 def deserialize_boolean(s: str) -> np.ndarray:

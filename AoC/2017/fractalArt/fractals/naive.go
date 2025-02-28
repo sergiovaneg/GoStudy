@@ -54,11 +54,11 @@ func makeEmptyNaive(n int) naiveFractal {
 }
 
 func (f naiveFractal) mirror() naiveFractal {
-	fNew := make(naiveFractal, len(f))
+	n := len(f)
+	fNew := make(naiveFractal, n)
 
 	for i, row := range f {
-		fNew[i] = slices.Clone(row)
-		slices.Reverse(fNew[i])
+		fNew[n-i-1] = slices.Clone(row)
 	}
 
 	return fNew
