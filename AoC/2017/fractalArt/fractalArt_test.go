@@ -7,7 +7,7 @@ import (
 	"github.com/sergiovaneg/GoStudy/AoC/2017/fractalArt/fractals"
 )
 
-const maxBenchmark = 23
+const maxBenchmark = 22
 
 func benchSingle(b *testing.B, s fractals.Solver, nIters int, rules []string) {
 	for b.Loop() {
@@ -25,10 +25,10 @@ func benchLoop(b *testing.B, s fractals.Solver, rules []string) {
 
 func BenchmarkSolvers(b *testing.B) {
 	solvers := []fractals.Solver{
-		// fractals.NaiveSolver{},
+		fractals.NaiveSolver{},
 		// fractals.NaiveConcurrentSolver{},
 		// fractals.NaiveDPSolver{},
-		fractals.ImprovedSolver{},
+		// fractals.GroupedSolver{},
 	}
 
 	rules := getRules()

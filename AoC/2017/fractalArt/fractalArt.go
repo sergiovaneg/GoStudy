@@ -34,6 +34,6 @@ func getRules() []string {
 func main() {
 	lines := getRules()
 
-	println(fractals.ImprovedSolver{}.Solve(SEED, targetA, lines))
-	println(fractals.ImprovedSolver{}.Solve(SEED, targetB, lines))
+	println(fractals.GroupedSolver{}.Solve(SEED, targetA, lines))
+	println(fractals.GroupedSolver{}.Solve(SEED, targetB, lines))
 }

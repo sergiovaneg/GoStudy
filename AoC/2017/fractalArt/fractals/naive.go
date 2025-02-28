@@ -137,8 +137,8 @@ func (r naiveRuleset) grow(f naiveFractal) naiveFractal {
 	return fNext
 }
 
-func (f naiveFractal) count() int {
-	var res int
+func (f naiveFractal) count() uint {
+	var res uint
 
 	for _, row := range f {
 		for _, v := range row {
@@ -151,9 +151,13 @@ func (f naiveFractal) count() int {
 	return res
 }
 
-func (NaiveSolver) Solve(seed string, nIters int, lines []string) int {
-	r := initNaiveRuleset(lines)
+func (NaiveSolver) Solve(seed string, nIters int, lines []string) uint {
+	if nIters == 0 {
+		return uint(strings.Count(seed, "#"))
+	}
+
 	f := deserializeNaive(seed)
+	r := initNaiveRuleset(lines)
 
 	for range nIters {
 		f = r.grow(f)

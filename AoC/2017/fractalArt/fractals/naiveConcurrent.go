@@ -1,6 +1,9 @@
 package fractals
 
-import "sync"
+import (
+	"strings"
+	"sync"
+)
 
 type NaiveConcurrentSolver struct{}
 
@@ -39,9 +42,13 @@ func (r naiveRuleset) growParallel(f naiveFractal) naiveFractal {
 }
 
 func (NaiveConcurrentSolver) Solve(
-	seed string, nIters int, lines []string) int {
-	r := initNaiveRuleset(lines)
+	seed string, nIters int, lines []string) uint {
+	if nIters == 0 {
+		return uint(strings.Count(seed, "#"))
+	}
+
 	f := deserializeNaive(seed)
+	r := initNaiveRuleset(lines)
 
 	for range nIters {
 		f = r.growParallel(f)

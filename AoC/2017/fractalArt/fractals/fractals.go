@@ -2,5 +2,5 @@ package fractals
 
 type Solver interface {
 	String() string
-	Solve(string, int, []string) int
+	Solve(string, int, []string) uint
 }
