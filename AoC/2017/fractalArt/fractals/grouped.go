@@ -8,17 +8,20 @@ type GroupedSolver struct{}
 
 func (s GroupedSolver) String() string { return "Grouped Solver" }
 
-type state map[string]uint
-type stateRuleset map[string]state
+type stateSequence struct {
+	s1, s2 string
+	s3     map[string]uint
+}
+type stateRuleset map[string]stateSequence
 type groupedRuleset struct {
-	rules      pointerRuleset
+	rules      normalizedRuleset
 	stateRules stateRuleset
 }
 
 func initGR(lines []string) groupedRuleset {
 	var dp groupedRuleset
 
-	dp.rules = initPointerRuleset(lines)
+	dp.rules = initNormalizedRuleset(lines)
 	dp.stateRules = make(stateRuleset)
 
 	return dp
@@ -28,9 +31,13 @@ func (gr *groupedRuleset) updateSR(serial string) {
 	f0 := deserializeNaive(serial)
 
 	var f1 naiveFractal
+	s := stateSequence{
+		s3: make(map[string]uint),
+	}
 
 	// 3x3 -> 4x4
 	f0 = gr.rules.transform(f0)
+	s.s1 = f0.serializeNaive()
 
 	// 4x4 -> 6x6
 	f1 = makeEmptyNaive(6)
@@ -42,6 +49,7 @@ func (gr *groupedRuleset) updateSR(serial string) {
 		}
 	}
 	f0 = f1
+	s.s2 = f0.serializeNaive()
 
 	// 6x6 -> 9x9
 	f1 = makeEmptyNaive(9)
@@ -55,18 +63,19 @@ func (gr *groupedRuleset) updateSR(serial string) {
 	f0 = f1
 
 	// 9x9 -> 9 * 3x3
-	s := make(state)
 	for i := range 3 {
 		for j := range 3 {
 			subfractal := f0.getSubfractal(i, j, 3)
-			s[subfractal.serializeNaive()]++
+			normSerial := *gr.rules.n[subfractal.serializeNaive()]
+			s.s3[normSerial]++
 		}
 	}
 
 	gr.stateRules[serial] = s
 }
 
-func (gr *groupedRuleset) growThrice(serial string) state {
+func (gr *groupedRuleset) growThrice(serial string) stateSequence {
+
 	if _, ok := gr.stateRules[serial]; !ok {
 		gr.updateSR(serial)
 	}
@@ -83,14 +92,16 @@ func (GroupedSolver) Solve(seed string, nIters int, lines []string) uint {
 		return uint(strings.Count(seed, "#"))
 	}
 
-	dp := initGR(lines)
-	state0 := state{seed: 1}
+	gr := initGR(lines)
+
+	// Normalize from the beginning
+	state0 := map[string]uint{*gr.rules.n[seed]: 1}
 
 	for range nIters / 3 {
-		state1 := make(state)
+		state1 := make(map[string]uint)
 
 		for serial0, cnt0 := range state0 {
-			for serial1, cnt1 := range dp.growThrice(serial0) {
+			for serial1, cnt1 := range gr.growThrice(serial0).s3 {
 				state1[serial1] += cnt0 * cnt1
 			}
 		}
@@ -99,14 +110,22 @@ func (GroupedSolver) Solve(seed string, nIters int, lines []string) uint {
 	}
 
 	var finalCount uint
-	for serial0, cnt0 := range state0 {
-		f := deserializeNaive(serial0)
 
-		for range nIters % 3 {
-			f = dp.rules.grow(f)
+	switch nIters % 3 {
+	case 0:
+		for serial, cnt := range state0 {
+			finalCount += cnt * uint(strings.Count(serial, "#"))
 		}
-
-		finalCount += cnt0 * f.count()
+	case 1:
+		for serial, cnt := range state0 {
+			finalCount += cnt * uint(strings.Count(
+				gr.growThrice(serial).s1, "#"))
+		}
+	case 2:
+		for serial, cnt := range state0 {
+			finalCount += cnt * uint(strings.Count(
+				gr.growThrice(serial).s2, "#"))
+		}
 	}
 
 	return finalCount

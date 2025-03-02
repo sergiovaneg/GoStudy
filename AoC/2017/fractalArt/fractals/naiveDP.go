@@ -7,45 +7,53 @@ import (
 
 type NaiveDPSolver struct{}
 
-type pointerRuleset map[string]*naiveFractal
+type normalizer map[string]*string
+type normalizedRuleset struct {
+	r naiveRuleset
+	n normalizer
+}
 
 func (NaiveDPSolver) String() string {
 	return "Naïve DP Solver"
 }
 
-func initPointerRuleset(lines []string) pointerRuleset {
-	r := make(pointerRuleset)
+func (nr normalizedRuleset) get(serial string) (naiveFractal, bool) {
+	f, ok := nr.r[*nr.n[serial]]
+	return f, ok
+}
+
+func initNormalizedRuleset(lines []string) normalizedRuleset {
+	var nr normalizedRuleset
+	nr.r = make(naiveRuleset)
+	nr.n = make(normalizer)
 
 	for _, line := range lines {
 		kv := strings.Split(line, " => ")
+		nr.r[kv[0]] = deserializeNaive(kv[1])
 
 		f := deserializeNaive(kv[0])
 		fm := f.mirror()
-		out := deserializeNaive(kv[1])
 
 		for range 4 {
 			s, sm := f.serializeNaive(), fm.serializeNaive()
-
-			r[s], r[sm] = new(naiveFractal), new(naiveFractal)
-			*r[s], *r[sm] = out, out
-
+			nr.n[s], nr.n[sm] = &kv[0], &kv[0]
 			f, fm = f.rotate(), fm.rotate()
 		}
 	}
 
-	return r
+	return nr
 }
 
-func (r pointerRuleset) transform(f naiveFractal) naiveFractal {
-	if out, ok := r[f.serializeNaive()]; ok {
-		return *out
+func (nr normalizedRuleset) transform(f naiveFractal) naiveFractal {
+	if out, ok := nr.get(f.serializeNaive()); ok {
+		return out
 	}
 
 	panic("Unregistered source pattern: " + f.serializeNaive())
 
 }
 
-func (r pointerRuleset) grow(f naiveFractal) naiveFractal {
+func (nr normalizedRuleset) grow(f naiveFractal) naiveFractal {
 	n := len(f)
 
 	var s0, s1 int
@@ -65,7 +73,7 @@ func (r pointerRuleset) grow(f naiveFractal) naiveFractal {
 			for j := range nSubfrac {
 				fNext.setSubfractal(
 					i, j, s1,
-					r.transform(f.getSubfractal(i, j, s0)))
+					nr.transform(f.getSubfractal(i, j, s0)))
 			}
 			wg.Done()
 		}()
@@ -81,7 +89,7 @@ func (NaiveDPSolver) Solve(seed string, nIters int, lines []string) uint {
 	}
 
 	f := deserializeNaive(seed)
-	r := initPointerRuleset(lines)
+	r := initNormalizedRuleset(lines)
 
 	for range nIters {
 		f = r.grow(f)

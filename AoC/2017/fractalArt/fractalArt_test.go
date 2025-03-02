@@ -25,9 +25,9 @@ func benchLoop(b *testing.B, s fractals.Solver, rules []string) {
 
 func BenchmarkSolvers(b *testing.B) {
 	solvers := []fractals.Solver{
-		// fractals.NaiveSolver{},
-		// fractals.NaiveConcurrentSolver{},
-		// fractals.NaiveDPSolver{},
+		fractals.NaiveSolver{},
+		fractals.NaiveConcurrentSolver{},
+		fractals.NaiveDPSolver{},
 		fractals.GroupedSolver{},
 	}
 
