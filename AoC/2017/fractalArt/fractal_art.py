@@ -3,6 +3,11 @@ Script to generate the figures related to Fractal Art (AoC 2017, D21).
 """
 
 import os
+import sys
+
+import re
+from collections.abc import Iterator
+from itertools import groupby
 
 import numpy as np
 
@@ -20,22 +25,24 @@ sns.set_theme(
 
 os.makedirs("./figures/", exist_ok=True)
 
+PROCESSOR = re.compile(r"\d+-\d+\s*([\d|\.]+)([^\s]{0,1}).*(\d)\%")
 
-def serialize(f: list[list[str]]) -> str:
-  return "/".join([x for x in ["".join(e) for e in f]])
+
+def serialize(fractal: list[list[str]]) -> str:
+  return "/".join([x for x in ["".join(e) for e in fractal]])
 
 
 def deserialize(s: str) -> list[list[str]]:
   return [list(x) for x in s.split("/")]
 
 
-def mirror(f: list[list[str]]) -> list[list[str]]:
-  return list(reversed(f))
+def mirror(fractal: list[list[str]]) -> list[list[str]]:
+  return list(reversed(fractal))
 
 
-def rotate(f: list[list[str]]) -> list[list[str]]:
-  n = len(f)
-  return [[f[j][i] for j in reversed(range(n))] for i in range(n)]
+def rotate(fractal: list[list[str]]) -> list[list[str]]:
+  n = len(fractal)
+  return [[fractal[j][i] for j in reversed(range(n))] for i in range(n)]
 
 
 def deserialize_boolean(s: str) -> np.ndarray:
@@ -59,6 +66,29 @@ def plot_fractal(data: np.ndarray, ax: Axis):
       xticklabels=False,
       yticklabels=False,
       annot=True
+  )
+
+
+def process_match(groups: tuple[str, str, str]) -> np.ndarray:
+  num = float(groups[0])
+  delta = float(groups[2]) / 100
+  match groups[1]:
+    case "n":
+      num *= 1e-9
+    case "µ":
+      num *= 1e-6
+    case "m":
+      num *= 1e-3
+
+  return num * np.asarray([1. - delta, 1., 1. + delta])
+
+
+def process_result_group(results: Iterator[list[str]]) -> np.ndarray:
+  return np.stack(
+      [
+          process_match(PROCESSOR.match(r[1]).groups())
+          for r in results
+      ]
   )
 
 
@@ -129,3 +159,30 @@ axs[0][0].set_ylabel("Input")
 axs[1][0].set_ylabel("Output")
 fig.tight_layout()
 fig.savefig("./figures/evo.png")
+
+# Time plots
+with open("./benchmark.txt", "r", encoding=sys.getdefaultencoding()) as file:
+  timings = groupby(
+      [
+          l.removeprefix("Solvers/").split("/")
+          for l in file.readlines()
+          if l.startswith("Solvers/")
+      ],
+      lambda line: line[0]
+  )
+
+fig, axis = plt.subplots(1, 1, figsize=(12, 6))
+for solver, lines in timings:
+  arr = process_result_group(lines)
+  x = np.arange(arr.shape[0])
+
+  axis.plot(x, arr[:, 1], label=solver.replace("_", " "))
+  axis.fill_between(x, arr[:, 0], arr[:, 2], alpha=0.7)
+
+axis.set_yscale("log")
+axis.set_xlabel("No. Iterations")
+axis.set_ylabel("Execution Time [s]")
+axis.legend()
+fig.tight_layout()
+
+fig.savefig("./figures/results.png")
