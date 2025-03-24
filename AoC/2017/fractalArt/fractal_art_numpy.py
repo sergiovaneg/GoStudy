@@ -40,7 +40,7 @@ with open("./input.txt", "r", encoding=sys.getdefaultencoding()) as file:
 def evolve(seed: np.ndarray[bool]) -> np.ndarray[bool]:
     c_size = 2 if seed.shape[0] % 2 == 0 else 3
     sf_count = seed.shape[0] // c_size
-    r_size = sf_count * 3 if c_size == 2 else sf_count * 4
+    r_size = sf_count * (c_size + 1)
 
     return np.vectorize(
         lambda sf: ruleset[sf.tobytes()],
