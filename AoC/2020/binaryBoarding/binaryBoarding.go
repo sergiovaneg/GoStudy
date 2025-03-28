@@ -11,9 +11,16 @@ import (
 func getSeatId(serial string) int {
 	var id int
 
-	for _, c := range serial {
+	for _, c := range serial[:7] {
 		id <<= 1
-		if c == 'B' || c == 'R' {
+		if c == 'B' {
+			id++
+		}
+	}
+
+	for _, c := range serial[7:] {
+		id <<= 1
+		if c == 'R' {
 			id++
 		}
 	}
