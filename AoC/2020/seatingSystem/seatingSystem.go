@@ -8,27 +8,33 @@ import (
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
-type grid map[[2]int]bool
-type counter func(grid, [2]int) int
+type coordinate [2]int
+type grid map[coordinate]bool
+type neighbourSet map[coordinate][]coordinate
 
-func countAdjacent(g grid, x [2]int) int {
-	var cnt int
+func (g grid) getImmediateNeighbours() neighbourSet {
+	nS := make(neighbourSet, len(g))
 
-	for i := x[0] - 1; i <= x[0]+1; i++ {
-		for j := x[1] - 1; j <= x[1]+1; j++ {
-			if g[[2]int{i, j}] {
-				cnt++
+	for x0 := range g {
+		nS[x0] = make([]coordinate, 0)
+		for i := x0[0] - 1; i <= x0[0]+1; i++ {
+			for j := x0[1] - 1; j <= x0[1]+1; j++ {
+				x := coordinate{i, j}
+				if x == x0 {
+					continue
+				}
+
+				if _, ok := g[x]; ok {
+					nS[x0] = append(nS[x0], x)
+				}
 			}
 		}
 	}
-	if g[x] {
-		cnt--
-	}
 
-	return cnt
+	return nS
 }
 
-func isValidCoordinate(x [2]int, n int) bool {
+func isValidCoord(x coordinate, n int) bool {
 	if x[0] < 0 || x[1] < 0 {
 		return false
 	}
@@ -40,52 +46,59 @@ func isValidCoordinate(x [2]int, n int) bool {
 	return true
 }
 
-func offset(x, dx [2]int) [2]int {
-	return [2]int{x[0] + dx[0], x[1] + dx[1]}
+func offset(x, dx coordinate) coordinate {
+	return coordinate{x[0] + dx[0], x[1] + dx[1]}
 }
 
-func countNearest(g grid, x0 [2]int, n int) int {
-	var cnt int
+func (g grid) getClosestNeighbours(n int) neighbourSet {
+	nS := make(neighbourSet, len(g))
 
-	for _, dx := range [8][2]int{
-		{0, 1}, {0, -1}, {1, 0}, {-1, 0},
-		{1, 1}, {1, -1}, {-1, 1}, {-1, -1},
-	} {
-		var f bool
-		for x := offset(x0, dx); isValidCoordinate(x, n); x = offset(x, dx) {
-			if v, ok := g[x]; ok {
-				f = v
-				break
+	for x0 := range g {
+		nS[x0] = make([]coordinate, 0)
+
+		for _, dx := range [8]coordinate{
+			{0, -1}, {0, 1}, {1, 0}, {-1, 0},
+			{1, -1}, {1, 1}, {-1, 1}, {-1, -1},
+		} {
+			for x := offset(x0, dx); isValidCoord(x, n); x = offset(x, dx) {
+				if _, ok := g[x]; ok {
+					nS[x0] = append(nS[x0], x)
+					break
+				}
 			}
 		}
-		if f {
-			cnt++
-		}
 	}
 
-	return cnt
+	return nS
 }
 
-func (g grid) updateGrid(rule counter, tol int) grid {
-	newGrid := make(grid, len(g))
+func (g grid) updateGrid(nS neighbourSet, tol int) grid {
+	ng := make(grid, len(g))
 
-	for k, v := range g {
-		nAdj := rule(g, k)
-		if v && nAdj >= tol {
-			newGrid[k] = false
-		} else if !v && nAdj == 0 {
-			newGrid[k] = true
+	for x0, busy := range g {
+		var nAdj int
+
+		for _, x := range nS[x0] {
+			if g[x] {
+				nAdj++
+			}
+		}
+
+		if busy && nAdj >= tol {
+			ng[x0] = false
+		} else if !busy && nAdj == 0 {
+			ng[x0] = true
 		} else {
-			newGrid[k] = v
+			ng[x0] = busy
 		}
 	}
 
-	return newGrid
+	return ng
 }
 
 func cmpGrid(a, b grid) bool {
-	for k := range a {
-		if a[k] != b[k] {
+	for x := range a {
+		if a[x] != b[x] {
 			return false
 		}
 	}
@@ -93,11 +106,26 @@ func cmpGrid(a, b grid) bool {
 	return true
 }
 
+func (g0 grid) stabilizeGrid(nS neighbourSet, tol int) grid {
+	g := maps.Clone(g0)
+	for {
+		ng := g.updateGrid(nS, tol)
+		f := cmpGrid(g, ng)
+		g = ng
+
+		if f {
+			break
+		}
+	}
+
+	return g
+}
+
 func (g grid) count() int {
 	var cnt int
 
-	for _, v := range g {
-		if v {
+	for _, busy := range g {
+		if busy {
 			cnt++
 		}
 	}
@@ -120,34 +148,11 @@ func main() {
 	for i := 0; scanner.Scan(); i++ {
 		for j, char := range scanner.Text() {
 			if char == 'L' {
-				g0[[2]int{i, j}] = false
+				g0[coordinate{i, j}] = false
 			}
 		}
 	}
 
-	g := maps.Clone(g0)
-	for {
-		ng := g.updateGrid(countAdjacent, 4)
-		f := cmpGrid(g, ng)
-		g = ng
-
-		if f {
-			break
-		}
-	}
-	println(g.count())
-
-	g = maps.Clone(g0)
-	for {
-		ng := g.updateGrid(func(g grid, i [2]int) int {
-			return countNearest(g, i, n)
-		}, 5)
-		f := cmpGrid(g, ng)
-		g = ng
-
-		if f {
-			break
-		}
-	}
-	println(g.count())
+	println(g0.stabilizeGrid(g0.getImmediateNeighbours(), 4).count())
+	println(g0.stabilizeGrid(g0.getClosestNeighbours(n), 5).count())
 }
