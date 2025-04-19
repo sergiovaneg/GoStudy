@@ -146,6 +146,9 @@ func main() {
 	g0 := make(grid, n*n)
 
 	for i := 0; scanner.Scan(); i++ {
+		if len(scanner.Text()) > n {
+			n = len(scanner.Text())
+		}
 		for j, char := range scanner.Text() {
 			if char == 'L' {
 				g0[coordinate{i, j}] = false
