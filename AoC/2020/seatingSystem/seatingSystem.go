@@ -12,22 +12,24 @@ type coordinate [2]int
 type grid map[coordinate]bool
 type neighbourSet map[coordinate][]coordinate
 
+func offset(x, dx coordinate) coordinate {
+	return coordinate{x[0] + dx[0], x[1] + dx[1]}
+}
+
 func (g grid) getImmediateNeighbours() neighbourSet {
 	nS := make(neighbourSet, len(g))
 
 	for x0 := range g {
-		nS[x0] = make([]coordinate, 0)
-		for i := x0[0] - 1; i <= x0[0]+1; i++ {
-			for j := x0[1] - 1; j <= x0[1]+1; j++ {
-				x := coordinate{i, j}
-				if x == x0 {
-					continue
-				}
+		for _, dx := range [8]coordinate{
+			{0, -1}, {0, 1}, {1, 0}, {-1, 0},
+			{1, -1}, {1, 1}, {-1, 1}, {-1, -1},
+		} {
+			x1 := offset(x0, dx)
 
-				if _, ok := g[x]; ok {
-					nS[x0] = append(nS[x0], x)
-				}
+			if _, ok := g[x1]; ok {
+				nS[x0] = append(nS[x0], x1)
 			}
+
 		}
 	}
 
@@ -46,23 +48,17 @@ func isValidCoord(x coordinate, n int) bool {
 	return true
 }
 
-func offset(x, dx coordinate) coordinate {
-	return coordinate{x[0] + dx[0], x[1] + dx[1]}
-}
-
 func (g grid) getClosestNeighbours(n int) neighbourSet {
 	nS := make(neighbourSet, len(g))
 
 	for x0 := range g {
-		nS[x0] = make([]coordinate, 0)
-
 		for _, dx := range [8]coordinate{
 			{0, -1}, {0, 1}, {1, 0}, {-1, 0},
 			{1, -1}, {1, 1}, {-1, 1}, {-1, -1},
 		} {
-			for x := offset(x0, dx); isValidCoord(x, n); x = offset(x, dx) {
-				if _, ok := g[x]; ok {
-					nS[x0] = append(nS[x0], x)
+			for x1 := offset(x0, dx); isValidCoord(x1, n); x1 = offset(x1, dx) {
+				if _, ok := g[x1]; ok {
+					nS[x0] = append(nS[x0], x1)
 					break
 				}
 			}
@@ -78,8 +74,8 @@ func (g grid) updateGrid(nS neighbourSet, tol int) grid {
 	for x0, busy := range g {
 		var nAdj int
 
-		for _, x := range nS[x0] {
-			if g[x] {
+		for _, x1 := range nS[x0] {
+			if g[x1] {
 				nAdj++
 			}
 		}
@@ -96,26 +92,16 @@ func (g grid) updateGrid(nS neighbourSet, tol int) grid {
 	return ng
 }
 
-func cmpGrid(a, b grid) bool {
-	for x := range a {
-		if a[x] != b[x] {
-			return false
-		}
-	}
-
-	return true
-}
-
 func (g0 grid) stabilizeGrid(nS neighbourSet, tol int) grid {
 	g := maps.Clone(g0)
 	for {
 		ng := g.updateGrid(nS, tol)
-		f := cmpGrid(g, ng)
-		g = ng
 
-		if f {
+		if maps.Equal(g, ng) {
 			break
 		}
+
+		g = ng
 	}
 
 	return g
