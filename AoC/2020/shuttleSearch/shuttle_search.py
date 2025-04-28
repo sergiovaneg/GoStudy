@@ -1,0 +1,38 @@
+"""
+Script to solve part 2 of day 13, 2020.
+"""
+
+import sys
+import cvxpy
+import numpy as np
+
+with open("./input.txt", "r", encoding=sys.getdefaultencoding()) as f:
+    buses = [int(x) if x != "x" else None for x in f.readlines()[-1].split(",")]
+
+mask = np.array([x is not None for x in buses], dtype=bool)
+n_buses = np.count_nonzero(mask)
+
+
+a_mat = np.concat([
+    -np.ones(n_buses)[:, None],
+    np.diag([x for x in buses if x is not None])
+], axis=1)
+b_vec = np.array([
+    idx for idx, x in enumerate(buses)
+    if x is not None
+], dtype=float)
+
+
+c_vec = np.eye(n_buses + 1, 1).flatten()
+x = cvxpy.Variable(n_buses + 1, integer=True)
+
+prob = cvxpy.Problem(
+    cvxpy.Minimize(c_vec.T @ x),
+    [
+        a_mat @ x == b_vec,
+        x >= 0
+    ]
+)
+prob.solve(verbose=True)
+
+print(x.value)

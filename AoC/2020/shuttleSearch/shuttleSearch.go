@@ -7,8 +7,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/draffensperger/golp"
 )
 
 func getWaitTime(id, ref int) int {
@@ -29,34 +27,7 @@ func cmpWaitTime(a, b, ref int) int {
 }
 
 func minimizeTS(buses []int) int {
-	lp := golp.NewLP(0, len(buses)+1)
-
-	lp.SetInt(0, true)
-
-	for idx, id := range buses {
-		if id == -1 {
-			lp.AddConstraintSparse(
-				[]golp.Entry{{Col: idx + 1, Val: 1.}}, golp.EQ, 0.)
-			continue
-		}
-
-		lp.AddConstraintSparse(
-			[]golp.Entry{{Col: idx + 1, Val: 1.}}, golp.GE, 0.)
-
-		lp.AddConstraintSparse(
-			[]golp.Entry{
-				{Col: idx + 1, Val: float64(id)},
-				{Col: 0, Val: -1.},
-			}, golp.EQ, float64(idx))
-	}
-
-	obj := make([]float64, len(buses)+1)
-	obj[0] = 1.
-	lp.SetObjFn(obj)
-
-	lp.Solve()
-
-	return int(math.Round(lp.Variables()[0]))
+	return len(buses)
 }
 
 func main() {
