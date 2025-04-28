@@ -13,10 +13,7 @@ mask = np.array([x is not None for x in buses], dtype=bool)
 n_buses = np.count_nonzero(mask)
 
 
-a_mat = np.concat([
-    -np.ones(n_buses)[:, None],
-    np.diag([x for x in buses if x is not None])
-], axis=1)
+a_mat = np.diag([x for x in buses if x is not None])
 b_vec = np.array([
     idx for idx, x in enumerate(buses)
     if x is not None
@@ -24,14 +21,22 @@ b_vec = np.array([
 
 
 c_vec = np.eye(n_buses + 1, 1).flatten()
-x = cvxpy.Variable(n_buses + 1, integer=True)
+ts = cvxpy.Variable()
+x = cvxpy.Variable(n_buses, integer=True)
 
 prob = cvxpy.Problem(
-    cvxpy.Minimize(c_vec.T @ x),
+    cvxpy.Minimize(ts),
     [
-        a_mat @ x == b_vec,
-        x >= 0
+        a_mat @ x == ts + b_vec,
+        x >= 0,
+        ts >= 0
     ]
 )
-prob.solve(verbose=False, solver="GUROBI")
-print(x.value[0])
+
+prob.solve(
+    verbose=False,
+    solver="GUROBI",
+    reoptimize=True
+)
+
+print(ts.value)
