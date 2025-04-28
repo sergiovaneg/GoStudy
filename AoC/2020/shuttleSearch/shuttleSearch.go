@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/sergiovaneg/GoStudy/utils"
 )
 
 func getWaitTime(id, ref int) int {
@@ -27,7 +29,21 @@ func cmpWaitTime(a, b, ref int) int {
 }
 
 func minimizeTS(buses []int) int {
-	return len(buses)
+	phaseAcc, periodAcc := 0, 1
+	for idx, id := range buses {
+		if id == -1 {
+			continue
+		}
+		g, s, _ := utils.ExtGCD(id, periodAcc)
+		z := (idx - phaseAcc) / g
+		m := z * s
+
+		periodAcc = utils.LCM(periodAcc, id)
+		aux := (-m*id + idx)
+		phaseAcc = aux % periodAcc
+	}
+
+	return phaseAcc
 }
 
 func main() {

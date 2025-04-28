@@ -51,7 +51,7 @@ func GCD[I Integer](a, b I) I {
 func LCM[I Integer](a, b I, integers ...I) I {
 	result := a * b / GCD(a, b)
 
-	for i := 0; i < len(integers); i++ {
+	for i := range integers {
 		result = LCM(result, integers[i])
 	}
 
