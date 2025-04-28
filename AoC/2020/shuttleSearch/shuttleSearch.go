@@ -29,6 +29,7 @@ func cmpWaitTime(a, b, ref int) int {
 }
 
 func minimizeTS(buses []int) int {
+	// Doesn't work; use the python script
 	phaseAcc, periodAcc := 0, 1
 	for idx, id := range buses {
 		if id == -1 {

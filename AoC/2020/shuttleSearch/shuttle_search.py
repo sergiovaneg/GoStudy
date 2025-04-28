@@ -33,6 +33,5 @@ prob = cvxpy.Problem(
         x >= 0
     ]
 )
-prob.solve(verbose=True)
-
-print(x.value)
+prob.solve(verbose=False, solver="GUROBI")
+print(x.value[0])
