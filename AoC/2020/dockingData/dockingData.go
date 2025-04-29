@@ -9,6 +9,7 @@ import (
 )
 
 type Memory map[int]int
+
 type OperationA struct {
 	mask int
 	dir  bool
@@ -30,19 +31,6 @@ func (bm *BitmaskA) updateMask(line string) {
 	}
 }
 
-func recursiveGen(addr int, masks []int) []int {
-	if len(masks) == 0 {
-		return []int{addr}
-	}
-
-	addrs := make([]int, 0, 0x01<<len(masks))
-
-	addrs = append(addrs, recursiveGen(addr&^masks[0], masks[1:])...)
-	addrs = append(addrs, recursiveGen(addr|masks[0], masks[1:])...)
-
-	return addrs
-}
-
 func (bm *BitmaskB) updateMask(line string) {
 	bm.setMask = 0
 	bm.floatingMasks = make([]int, 0)
@@ -51,17 +39,20 @@ func (bm *BitmaskB) updateMask(line string) {
 		if c == '0' {
 			continue
 		}
-		if c == '1' {
-			bm.setMask |= 0x01 << (35 - i)
-			continue
-		}
 
-		bm.floatingMasks = append(bm.floatingMasks, 0x01<<(35-i))
+		mask := 0x01 << (35 - i)
+		if c == '1' {
+			bm.setMask |= mask
+		} else {
+			bm.floatingMasks = append(bm.floatingMasks, mask)
+		}
 	}
 }
 
-func (m *Memory) updateA(line string, bm BitmaskA) {
+func (bm BitmaskA) updateMem(line string, m *Memory) {
 	nums := regexp.MustCompile(`(\d+)`).FindAllString(line, 2)
+
+	addr, _ := strconv.Atoi(nums[0])
 	val, _ := strconv.Atoi(nums[1])
 
 	for _, op := range bm {
@@ -72,11 +63,20 @@ func (m *Memory) updateA(line string, bm BitmaskA) {
 		}
 	}
 
-	pos, _ := strconv.Atoi(nums[0])
-	(*m)[pos] = val
+	(*m)[addr] = val
 }
 
-func (m *Memory) updateB(line string, bm BitmaskB) {
+func recursiveGen(addr int, masks []int) []int {
+	if len(masks) == 0 {
+		return []int{addr}
+	}
+
+	return append(
+		recursiveGen(addr&^masks[0], masks[1:]),
+		recursiveGen(addr|masks[0], masks[1:])...)
+}
+
+func (bm BitmaskB) updateMem(line string, m *Memory) {
 	nums := regexp.MustCompile(`(\d+)`).FindAllString(line, 2)
 
 	src, _ := strconv.Atoi(nums[0])
@@ -108,15 +108,17 @@ func main() {
 	maskB := BitmaskB{
 		floatingMasks: make([]int, 0),
 	}
+
 	memA, memB := make(Memory), make(Memory)
 
 	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), "mask") {
-			maskA.updateMask(scanner.Text())
-			maskB.updateMask(scanner.Text())
+		line := scanner.Text()
+		if strings.HasPrefix(line, "mask") {
+			maskA.updateMask(line)
+			maskB.updateMask(line)
 		} else {
-			memA.updateA(scanner.Text(), maskA)
-			memB.updateB(scanner.Text(), maskB)
+			maskA.updateMem(line, &memA)
+			maskB.updateMem(line, &memB)
 		}
 	}
 
