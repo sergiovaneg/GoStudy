@@ -171,3 +171,21 @@ func ISqrt[T Integer](x T) T {
 
 	return x0
 }
+
+func Permute[T any, S []T](s S) []S {
+	if len(s) == 1 {
+		return []S{s}
+	}
+
+	perms := make([]S, 0)
+	for idx, elem := range s {
+		aux := make(S, len(s))
+		copy(aux, s)
+		aux = slices.Delete(aux, idx, idx+1)
+		for _, perm := range Permute(aux) {
+			perms = append(perms, append([]T{elem}, perm...))
+		}
+	}
+
+	return perms
+}

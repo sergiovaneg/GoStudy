@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -56,6 +57,48 @@ func (r ruleset) getErrorRate(t ticket) int {
 	return score
 }
 
+func (rp rangePair) isValidAssignment(tickets []ticket, colIdx int) bool {
+	for _, t := range tickets {
+		if !rp.isWithin(t[colIdx]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (r ruleset) getSortedFields(tickets []ticket) []string {
+	valid, auxRange := make(map[int][]string), make([]int, 0, len(r))
+
+	for colIdx := range len(r) {
+		auxRange = append(auxRange, colIdx)
+		fields := make([]string, 0)
+		for field, rp := range r {
+			if rp.isValidAssignment(tickets, colIdx) {
+				fields = append(fields, field)
+			}
+		}
+		valid[colIdx] = fields
+	}
+	slices.SortFunc(auxRange, func(a, b int) int {
+		return len(valid[a]) - len(valid[b])
+	})
+
+	consumed := make(map[string]bool, len(r))
+	sortedKeys := make([]string, len(r))
+	for _, colIdx := range auxRange {
+		for _, field := range valid[colIdx] {
+			if consumed[field] {
+				continue
+			}
+			sortedKeys[colIdx] = field
+			consumed[field] = true
+			break
+		}
+	}
+
+	return sortedKeys
+}
+
 func main() {
 	file, err := os.Open("./input.txt")
 	if err != nil {
@@ -90,4 +133,18 @@ func main() {
 		resA += r.getErrorRate(t)
 	}
 	println(resA)
+
+	tickets = slices.DeleteFunc(tickets, func(t ticket) bool {
+		return r.getErrorRate(t) > 0
+	})
+
+	sortedFields := r.getSortedFields(tickets[1:])
+	resB := 1
+	for colIdx, field := range sortedFields {
+		if !strings.HasPrefix(field, "departure") {
+			continue
+		}
+		resB *= tickets[0][colIdx]
+	}
+	println(resB)
 }
