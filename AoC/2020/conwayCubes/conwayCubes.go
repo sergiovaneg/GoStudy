@@ -49,17 +49,22 @@ func (x0 Coordinate) getNeighbours() []Coordinate {
 }
 
 func (g *Grid) pad() {
+	newG := make(Grid)
+
 	for x0, active := range *g {
 		if !active {
 			continue
 		}
 
+		newG[x0] = true
 		for _, x := range x0.getNeighbours() {
-			if _, ok := (*g)[x]; !ok {
-				(*g)[x] = false
+			if _, ok := newG[x]; !ok {
+				newG[x] = false
 			}
 		}
 	}
+
+	*g = newG
 }
 
 func (g Grid) getNActiveNeighbours(x0 Coordinate) int {
