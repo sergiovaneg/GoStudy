@@ -79,19 +79,22 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	n, _ := utils.LineCounter(file)
 
-	cA, cB := make(chan int, n), make(chan int, n)
+	c := make(chan [2]int, n)
 
 	for scanner.Scan() {
 		go func(line string) {
-			cA <- eval(line, operateBasic)
-			cB <- eval(line, operateAdvanced)
+			c <- [2]int{
+				eval(line, operateBasic),
+				eval(line, operateAdvanced),
+			}
 		}(scanner.Text())
 	}
 
 	var resA, resB int
 	for range n {
-		resA += <-cA
-		resB += <-cB
+		res := <-c
+		resA += res[0]
+		resB += res[1]
 	}
 	println(resA)
 	println(resB)
