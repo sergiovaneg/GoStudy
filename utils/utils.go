@@ -189,3 +189,28 @@ func Permute[T any, S []T](s S) []S {
 
 	return perms
 }
+
+func Choices[T any](collection [][]T) [][]T {
+	if len(collection[0]) == 0 {
+		return [][]T{}
+	}
+
+	if len(collection) == 1 {
+		split := make([][]T, len(collection[0]))
+		for idx, elem := range collection[0] {
+			split[idx] = []T{elem}
+		}
+		return split
+	}
+
+	next := Choices(collection[1:])
+	drafts := make([][]T, 0, len(collection[0])*len(next))
+
+	for _, tail := range next {
+		for _, head := range collection[0] {
+			drafts = append(drafts, append([]T{head}, tail...))
+		}
+	}
+
+	return drafts
+}
