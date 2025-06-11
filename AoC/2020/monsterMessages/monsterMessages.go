@@ -3,97 +3,95 @@ package main
 import (
 	"bufio"
 	"os"
-	"regexp"
-	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/sergiovaneg/GoStudy/utils"
 )
 
-type MemKey struct {
-	id  int
+type Rule struct {
+	isEndpoint  bool
+	endpointStr string
+	nextRules   [][]int
+}
+
+type CallArgs struct {
 	msg string
+	id  int
 }
-type Memory map[MemKey][][2]int
+
 type Ruleset struct {
-	rules map[int]func(string) [][2]int
-	dp    Memory
+	rules  map[int]Rule
+	memory map[CallArgs]bool
 }
 
-func isContiguous(rangeArr [][2]int) bool {
-	for i, r1 := range rangeArr[1:] {
-		if rangeArr[i][1] != r1[0] {
-			return false
+func parseRule(line string) (int, Rule) {
+	subStrs := strings.Split(line, ": ")
+	id, _ := strconv.Atoi(subStrs[0])
+
+	if strings.Contains(subStrs[1], "\"") {
+		return id, Rule{isEndpoint: true, endpointStr: subStrs[1][1:2]}
+	}
+
+	paths := make([][]int, 0)
+	for pathStr := range strings.SplitSeq(subStrs[1], " | ") {
+		path := make([]int, 0)
+		for nextStr := range strings.SplitSeq(pathStr, " ") {
+			next, _ := strconv.Atoi(nextStr)
+			path = append(path, next)
+		}
+		paths = append(paths, path)
+	}
+
+	return id, Rule{isEndpoint: false, nextRules: paths}
+}
+
+func partitionString(s string, k int) [][]string {
+	if k == 1 {
+		return [][]string{{s}}
+	}
+
+	partitions := make([][]string, 0)
+	for idx := range s {
+		lhs := s[:idx]
+		for _, rhs := range partitionString(s[idx:], k-1) {
+			partitions = append(partitions, append([]string{lhs}, rhs...))
 		}
 	}
-	return true
+
+	return partitions
 }
 
-func initRuleset() Ruleset {
-	return Ruleset{
-		rules: make(map[int]func(string) [][2]int),
-		dp:    make(Memory),
-	}
-}
-
-func (rs *Ruleset) call(id int, msg string) [][2]int {
-	key := MemKey{id, msg}
-	if res, ok := rs.dp[key]; ok {
+func (rs *Ruleset) query(msg string, id int) bool {
+	callArgs := CallArgs{msg, id}
+	if res, ok := rs.memory[callArgs]; ok {
 		return res
-	} else {
-		res = rs.rules[id](msg)
-		rs.dp[key] = slices.Clone(res)
-		return res
 	}
+
+	rs.memory[callArgs] = rs.validate(msg, id)
+	return rs.memory[callArgs]
 }
 
-func (rs *Ruleset) addRule(line string) {
-	substr := strings.Split(line, ": ")
-	id, _ := strconv.Atoi(substr[0])
+func (rs *Ruleset) validate(msg string, id int) bool {
+	if msg == "" {
+		return false
+	}
 
-	if j := strings.Index(substr[1], `"`); j != -1 {
-		re := regexp.MustCompile(substr[1][j+1 : j+2])
-		rs.rules[id] = func(msg string) [][2]int {
-			candidates := make([][2]int, 0)
-			for _, idxs := range re.FindAllStringIndex(msg, -1) {
-				candidates = append(candidates, [2]int{idxs[0], idxs[1]})
+	if rs.rules[id].isEndpoint {
+		return msg == rs.rules[id].endpointStr
+	}
+
+	for _, path := range rs.rules[id].nextRules {
+		for _, part := range partitionString(msg, len(path)) {
+			valid := true
+			for idx := range part {
+				valid = valid && rs.query(part[idx], path[idx])
 			}
-			return candidates
-		}
-	} else {
-		options := make([][]int, 0)
-		for i, opt := range strings.Split(substr[1], " | ") {
-			options = append(options, make([]int, 0))
-			for _, num := range regexp.MustCompile(
-				`\d+`).FindAllString(opt, -1) {
-				val, _ := strconv.Atoi(num)
-				options[i] = append(options[i], val)
+			if valid {
+				return true
 			}
-		}
-
-		rs.rules[id] = func(msg string) [][2]int {
-			candidates := make([][2]int, 0)
-
-			for _, opt := range options {
-				cardinality := len(opt)
-				pools := make([][][2]int, cardinality)
-				for poolIdx, ruleIdx := range opt {
-					pools[poolIdx] = rs.call(ruleIdx, msg)
-				}
-
-				for _, seq := range utils.Choices(pools) {
-					if !isContiguous(seq) {
-						continue
-					}
-					candidates = append(candidates, [2]int{
-						seq[0][0], seq[cardinality-1][1]})
-				}
-			}
-
-			return candidates
 		}
 	}
+
+	return false
 }
 
 func main() {
@@ -104,30 +102,48 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	rs := initRuleset()
+	ruleset := Ruleset{
+		rules:  make(map[int]Rule),
+		memory: make(map[CallArgs]bool),
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
 			break
 		}
-		rs.addRule(line)
+		id, rule := parseRule(line)
+		ruleset.rules[id] = rule
+	}
+
+	messages := make([]string, 0)
+	for scanner.Scan() {
+		messages = append(messages, scanner.Text())
 	}
 
 	resA := 0
-	for scanner.Scan() {
-		msg, flag := scanner.Text(), false
-		candidates := rs.call(0, msg)
-		for _, cand := range candidates {
-			match := msg[cand[0]:cand[1]]
-			if match == msg {
-				flag = true
-				break
-			}
-		}
-		if flag {
+	for _, msg := range messages {
+		if ruleset.validate(msg, 0) {
 			resA++
 		}
 	}
 	println(resA)
+
+	ruleset.memory = make(map[CallArgs]bool)
+	ruleset.rules[8] = Rule{
+		isEndpoint: false,
+		nextRules:  [][]int{{42}, {42, 8}},
+	}
+	ruleset.rules[11] = Rule{
+		isEndpoint: false,
+		nextRules:  [][]int{{42, 31}, {42, 11, 31}},
+	}
+
+	resB := 0
+	for _, msg := range messages {
+		if ruleset.validate(msg, 0) {
+			resB++
+		}
+	}
+	println(resB)
 }
