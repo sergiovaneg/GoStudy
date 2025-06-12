@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -35,15 +36,65 @@ func parseTile(lines []string) Tile {
 	return t
 }
 
+func (t Tile) getSide(k int) []bool {
+	n := len(t)
+	side := make([]bool, n)
+	switch k {
+	case 0:
+		for j := range n {
+			side[j] = t[0][j]
+		}
+	case 1:
+		for i := range n {
+			side[i] = t[i][n-1]
+		}
+	case 2:
+		for j := range n {
+			side[j] = t[n-1][n-j-1]
+		}
+	case 3:
+		for i := range n {
+			side[i] = t[n-i-1][0]
+		}
+	}
+	return side
+}
+
 func (p Placement) getSide(ts TileSet, k int) []bool {
+	var side []bool
 	tile := ts[p.id]
-	side := make([]bool, len(tile))
+	normIdx := (p.state + k) & 0b011
+
+	if p.state&0b100 == 0 {
+		side = tile.getSide(normIdx)
+	} else {
+		side = tile.getSide(0b11 - normIdx)
+		slices.Reverse(side)
+	}
 
 	return side
 }
 
 func (a Arrangement) isValidCandidate(
-	candidate Placement, ts TileSet, i, j int) bool
+	candidate Placement, ts TileSet, i, j int) bool {
+	if i > 0 {
+		topSide := a.placedTiles[[2]int{i - 1, j}].getSide(ts, 2)
+		slices.Reverse(topSide)
+		if !slices.Equal(candidate.getSide(ts, 0), topSide) {
+			return false
+		}
+	}
+
+	if j > 0 {
+		leftSide := a.placedTiles[[2]int{i, j - 1}].getSide(ts, 1)
+		slices.Reverse(leftSide)
+		if !slices.Equal(candidate.getSide(ts, 3), leftSide) {
+			return false
+		}
+	}
+
+	return true
+}
 
 func (a *Arrangement) recursiveSetup(ts TileSet, n int, i, j int) bool {
 	for tsId := range ts {
@@ -57,7 +108,6 @@ func (a *Arrangement) recursiveSetup(ts TileSet, n int, i, j int) bool {
 			if !a.isValidCandidate(candidate, ts, i, j) {
 				continue
 			}
-
 			a.placedTiles[[2]int{i, j}] = candidate
 
 			if (i == j && i == n-1) || a.recursiveSetup(
@@ -65,7 +115,6 @@ func (a *Arrangement) recursiveSetup(ts TileSet, n int, i, j int) bool {
 				return true
 			}
 		}
-
 		a.record[tsId] = false
 	}
 	return false
@@ -84,7 +133,6 @@ func main() {
 		splitBlock := strings.Split(block, "\n")
 
 		id, _ := strconv.Atoi(splitBlock[0][5 : len(splitBlock[0])-1])
-		println(splitBlock)
 
 		tileSet[id] = parseTile(splitBlock[1:])
 	}
@@ -94,5 +142,17 @@ func main() {
 		placedTiles: make(map[[2]int]Placement, n*n),
 		record:      make(map[int]bool),
 	}
-	arrangement.recursiveSetup(tileSet, n, 0, 0)
+	valid := arrangement.recursiveSetup(tileSet, n, 0, 0)
+
+	if valid {
+		resA := 1
+		for _, i := range [2]int{0, n - 1} {
+			for _, j := range [2]int{0, n - 1} {
+				resA *= arrangement.placedTiles[[2]int{i, j}].id
+			}
+		}
+		println(resA)
+	} else {
+		panic("Error")
+	}
 }
