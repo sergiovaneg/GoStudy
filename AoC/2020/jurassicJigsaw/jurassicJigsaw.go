@@ -1,75 +1,73 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/sergiovaneg/GoStudy/utils"
 )
 
-type Tile struct {
-	rot   int
-	sides [4][]bool
+type Tile [][]bool
+type TileSet map[int]Tile
+
+type Placement struct {
+	id    int
+	state int
+}
+type Arrangement struct {
+	placedTiles map[[2]int]Placement
+	record      map[int]bool
 }
 
-func (t Tile) getSide(i int) []bool {
-	return t.sides[(i+t.rot)%4]
-}
+func parseTile(lines []string) Tile {
+	n := len(lines)
+	t := make(Tile, n)
 
-func parseTile(data string) []Tile {
-	refTile := Tile{}
-	for line := range strings.SplitSeq(data, "\n") {
-
+	for i, line := range lines {
+		row := make([]bool, n)
+		for j, val := range line {
+			row[j] = val == '#'
+		}
+		t[i] = row
 	}
+
+	return t
 }
 
-func recursiveAssemble(
-	tileSets map[int][]Tile,
-	idx, n int,
-	used *map[int]bool,
-	conf *map[[2]int][2]int, // Id and equivalenceIdx
-) bool {
-	if idx == 0 {
-		*used = make(map[int]bool)
-		*conf = make(map[[2]int][2]int)
-	} else if idx == n*n {
-		return true
-	}
-	x := [2]int{idx / n, idx % n}
-	for tileId, tileSet := range tileSets {
-		if (*used)[tileId] {
+func (p Placement) getSide(ts TileSet, k int) []bool {
+	tile := ts[p.id]
+	side := make([]bool, len(tile))
+
+	return side
+}
+
+func (a Arrangement) isValidCandidate(
+	candidate Placement, ts TileSet, i, j int) bool
+
+func (a *Arrangement) recursiveSetup(ts TileSet, n int, i, j int) bool {
+	for tsId := range ts {
+		if a.record[tsId] {
 			continue
 		}
 
-		var targetLeft, targetTop []bool
-		if idRot, ok := (*conf)[[2]int{x[0], x[1] - 1}]; ok {
-			targetLeft = tileSets[idRot[0]][idRot[1]].getSide(1)
-		}
-		if idRot, ok := (*conf)[[2]int{x[0] - 1, x[1]}]; ok {
-			targetTop = tileSets[idRot[0]][idRot[1]].getSide(2)
-		}
-
-		(*used)[tileId] = true
-		for setIdx, tile := range tileSet {
-			if targetLeft != nil && !slices.Equal(targetLeft, tile.getSide(3)) {
+		a.record[tsId] = true
+		for state := range 8 {
+			candidate := Placement{id: tsId, state: state}
+			if !a.isValidCandidate(candidate, ts, i, j) {
 				continue
 			}
 
-			if targetTop != nil && !slices.Equal(targetLeft, tile.getSide(3)) {
-				continue
-			}
+			a.placedTiles[[2]int{i, j}] = candidate
 
-			(*conf)[x] = [2]int{tileId, setIdx}
-			if recursiveAssemble(tileSets, idx+1, n, used, conf) {
+			if (i == j && i == n-1) || a.recursiveSetup(
+				ts, n, i+(j+1)/n, (j+1)%n) {
 				return true
 			}
 		}
-		(*used)[tileId] = false
-	}
 
+		a.record[tsId] = false
+	}
 	return false
 }
 
@@ -79,24 +77,22 @@ func main() {
 		panic(err)
 	}
 
-	tiles := strings.Split(string(data), "\nTile ")
+	tiles := strings.Split(strings.Trim(string(data), "\n"), "\n\n")
 
-	n := utils.ISqrt(len(tiles))
-
-	tileSets := make(map[int][]Tile)
+	tileSet := make(TileSet)
 	for _, block := range tiles {
 		splitBlock := strings.Split(block, "\n")
 
-		l := len(splitBlock[0])
-		id, _ := strconv.Atoi(splitBlock[0][:l-1])
+		id, _ := strconv.Atoi(splitBlock[0][5 : len(splitBlock[0])-1])
+		println(splitBlock)
 
-		tileSets[id] = parseTile(splitBlock[1])
+		tileSet[id] = parseTile(splitBlock[1:])
 	}
 
-	conf := new(map[[2]int][2]int)
-	if recursiveAssemble(tileSets, 0, n, new(map[int]bool), conf) {
-		for x, idRot := range *conf {
-			fmt.Printf("(%v,%v): %v (%v)\n", x[0], x[1], idRot[0], idRot[1])
-		}
+	n := utils.ISqrt(len(tiles))
+	arrangement := Arrangement{
+		placedTiles: make(map[[2]int]Placement, n*n),
+		record:      make(map[int]bool),
 	}
+	arrangement.recursiveSetup(tileSet, n, 0, 0)
 }
