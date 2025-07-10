@@ -93,6 +93,13 @@ func ExtLCM[I Integer](mu []I, lambda []I) (I, I) {
 }
 
 func IPow[I Integer](a, b I) I {
+	if b < 0 {
+		return 0
+	}
+	if a == 1 {
+		return 1
+	}
+
 	r := I(1)
 
 	for b != 0 {
