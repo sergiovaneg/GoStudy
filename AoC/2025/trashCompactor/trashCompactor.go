@@ -19,7 +19,7 @@ func process(data []int, f func(int, int) int, carry int) int {
 func parseGroupVertically(text [][]rune, startIdx int) ([]int, int) {
 	vals := make([]int, 0)
 
-	for startIdx < len(text[0]) {
+	for ; startIdx < len(text[0]); startIdx++ {
 		num := ""
 		for _, row := range text {
 			r := row[startIdx]
@@ -28,7 +28,6 @@ func parseGroupVertically(text [][]rune, startIdx int) ([]int, int) {
 			}
 		}
 
-		startIdx++
 		if num == "" {
 			break
 		}
@@ -37,7 +36,7 @@ func parseGroupVertically(text [][]rune, startIdx int) ([]int, int) {
 		vals = append(vals, val)
 	}
 
-	return vals, startIdx
+	return vals, startIdx + 1
 }
 
 func main() {
@@ -90,6 +89,8 @@ func main() {
 		case "*":
 			f = func(a, b int) int { return a * b }
 			carry = 1
+		default:
+			panic("Unrecognized operator.")
 		}
 
 		resA += process(data[colIdxA], f, carry)
