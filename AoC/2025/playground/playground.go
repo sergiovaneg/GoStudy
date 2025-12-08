@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/heap"
 	"os"
 	"slices"
 	"strconv"
@@ -11,6 +12,22 @@ import (
 )
 
 type coord [3]int
+type pair struct {
+	idX, idY int
+	d2       int
+}
+type PairHeap []pair
+
+func (h PairHeap) Len() int           { return len(h) }
+func (h PairHeap) Less(i, j int) bool { return h[i].d2 < h[j].d2 }
+func (h PairHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *PairHeap) Push(x any)        { *h = append(*h, x.(pair)) }
+func (h *PairHeap) Pop() any {
+	n := len(*h)
+	x := (*h)[n-1]
+	*h = (*h)[:n-1]
+	return x
+}
 
 const connectionNumber = 1000
 
@@ -35,112 +52,73 @@ func d2(x, y coord) int {
 	return d
 }
 
-func getDistanceMatrix(arr []coord) [][]int {
-	ret := make([][]int, len(arr))
+func getDistanceHeap(arr []coord) PairHeap {
+	n := len(arr)
+	h := make(PairHeap, 0, (n*(n<<1))>>1)
 
+	heap.Init(&h)
 	for i, x := range arr {
-		ret[i] = make([]int, len(arr))
-		for j, y := range arr {
-			if i == j {
-				ret[i][j] = -1
-			} else {
-				ret[i][j] = d2(x, y)
-			}
+		for j, y := range arr[i+1:] {
+			item := pair{idX: i, idY: i + j + 1, d2: d2(x, y)}
+			heap.Push(&h, item)
 		}
 	}
 
-	return ret
+	return h
 }
 
-func cmpDistance(a, b int) int {
-	if a == -1 {
-		return 1
-	} else if b == -1 {
-		return -1
-	} else {
-		return a - b
-	}
-}
-
-func singleIter(
-	arr []coord,
-	dMatrix *[][]int,
-	membership *[][]coord,
-	minDVec, minDIdx *[]int) (coord, coord) {
-	// Update nearest-box slices
-	for i, dRow := range *dMatrix {
-		if (*minDVec)[i] > 0 {
-			continue
-		}
-
-		(*minDVec)[i] = slices.MinFunc(dRow, cmpDistance)
-		(*minDIdx)[i] = slices.Index(dRow, (*minDVec)[i])
-	}
-
-	// Select nearest pair
-	bestI := slices.Index(*minDVec, slices.Min(*minDVec))
-	bestJ := (*minDIdx)[bestI]
-	boxI := arr[bestI]
-	boxJ := arr[bestJ]
-
-	// Mask distances
-	(*dMatrix)[bestI][bestJ] = -1
-	(*dMatrix)[bestJ][bestI] = -1
-	(*minDVec)[bestI] = 0
-	(*minDVec)[bestJ] = 0
+func heapIteration(h *PairHeap, membership *[][]int) pair {
+	p := heap.Pop(h).(pair)
 
 	// Locate pre-assigned boxes
-	idI, idJ := -1, -1
+	setX, setY := -1, -1
 	for id, members := range *membership {
-		for _, x := range members {
-			if boxI == x {
-				idI = id
-			}
-			if boxJ == x {
-				idJ = id
-			}
+		if _, found := slices.BinarySearch(members, p.idX); found {
+			setX = id
+		}
+		if _, found := slices.BinarySearch(members, p.idY); found {
+			setY = id
 		}
 	}
 
-	if idI > -1 && idJ > -1 {
-		if idI != idJ {
-			(*membership)[idI] = append((*membership)[idI], (*membership)[idJ]...)
-			*membership = slices.Delete(*membership, idJ, idJ+1)
+	if setX > -1 && setY > -1 {
+		if setX != setY {
+			(*membership)[setX] = utils.SortedMerge(
+				(*membership)[setX], (*membership)[setY])
+			*membership = slices.Delete(*membership, setY, setY+1)
 		}
-	} else if idI > -1 {
-		(*membership)[idI] = append((*membership)[idI], boxJ)
-	} else if idJ > -1 {
-		(*membership)[idJ] = append((*membership)[idJ], boxI)
+	} else if setX > -1 {
+		(*membership)[setX], _ = utils.SortedUniqueInsert(
+			(*membership)[setX], p.idY)
+	} else if setY > -1 {
+		(*membership)[setY], _ = utils.SortedUniqueInsert(
+			(*membership)[setY], p.idX)
 	} else {
-		*membership = append(*membership, []coord{boxI, boxJ})
+		*membership = append(*membership, []int{p.idX, p.idY})
 	}
 
-	return boxI, boxJ
+	return p
 }
 
-func iterativeConnect(arr []coord) (int, int) {
-	dMatrix := getDistanceMatrix(arr)
-	membership := make([][]coord, 0)
+func heapConnect(arr []coord) (int, int) {
+	h := getDistanceHeap(arr)
+	membership := make([][]int, 0)
+	var p pair
 
-	minDVec := make([]int, len(arr))
-	minDIdx := make([]int, len(arr))
 	for range connectionNumber {
-		singleIter(arr, &dMatrix, &membership, &minDVec, &minDIdx)
+		p = heapIteration(&h, &membership)
 	}
 
-	setSizes := make([]int, 0, len(membership))
-	for _, set := range membership {
-		setSizes = append(setSizes, len(set))
-	}
-	slices.SortFunc(setSizes, func(a, b int) int { return b - a })
-	setSizes = setSizes[:3]
+	slices.SortFunc(membership, func(a, b []int) int {
+		return len(b) - len(a)
+	})
+	resA := len(membership[0]) * len(membership[1]) * len(membership[2])
 
-	var x, y coord
-	for len(membership) > 1 && len(membership[0]) < len(arr) {
-		x, y = singleIter(arr, &dMatrix, &membership, &minDVec, &minDIdx)
+	for len(membership[0]) < len(arr) {
+		p = heapIteration(&h, &membership)
 	}
 
-	return setSizes[0] * setSizes[1] * setSizes[2], x[0] * y[0]
+	return resA, arr[p.idX][0] * arr[p.idY][0]
 }
 
 func main() {
@@ -159,5 +137,5 @@ func main() {
 		arr = append(arr, parseCoord(scanner.Text()))
 	}
 
-	println(iterativeConnect(arr))
+	println(heapConnect(arr))
 }
