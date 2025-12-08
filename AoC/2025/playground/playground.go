@@ -62,51 +62,70 @@ func cmpDistance(a, b int) int {
 	}
 }
 
-func iterativeConnect(arr []coord) int {
-	dMat := getDistanceMatrix(arr)
-	membership := make(map[int][]coord)
-	idCounter := 1
+func singleIter(
+	arr []coord,
+	dMatrix *[][]int,
+	membership *[][]coord,
+	minDVec, minDIdx *[]int) (coord, coord) {
+	// Update nearest-box slices
+	for i, dRow := range *dMatrix {
+		if (*minDVec)[i] > 0 {
+			continue
+		}
 
+		(*minDVec)[i] = slices.MinFunc(dRow, cmpDistance)
+		(*minDIdx)[i] = slices.Index(dRow, (*minDVec)[i])
+	}
+
+	// Select nearest pair
+	bestI := slices.Index(*minDVec, slices.Min(*minDVec))
+	bestJ := (*minDIdx)[bestI]
+	boxI := arr[bestI]
+	boxJ := arr[bestJ]
+
+	// Mask distances
+	(*dMatrix)[bestI][bestJ] = -1
+	(*dMatrix)[bestJ][bestI] = -1
+	(*minDVec)[bestI] = 0
+	(*minDVec)[bestJ] = 0
+
+	// Locate pre-assigned boxes
+	idI, idJ := -1, -1
+	for id, members := range *membership {
+		for _, x := range members {
+			if boxI == x {
+				idI = id
+			}
+			if boxJ == x {
+				idJ = id
+			}
+		}
+	}
+
+	if idI > -1 && idJ > -1 {
+		if idI != idJ {
+			(*membership)[idI] = append((*membership)[idI], (*membership)[idJ]...)
+			*membership = slices.Delete(*membership, idJ, idJ+1)
+		}
+	} else if idI > -1 {
+		(*membership)[idI] = append((*membership)[idI], boxJ)
+	} else if idJ > -1 {
+		(*membership)[idJ] = append((*membership)[idJ], boxI)
+	} else {
+		*membership = append(*membership, []coord{boxI, boxJ})
+	}
+
+	return boxI, boxJ
+}
+
+func iterativeConnect(arr []coord) (int, int) {
+	dMatrix := getDistanceMatrix(arr)
+	membership := make([][]coord, 0)
+
+	minDVec := make([]int, len(arr))
+	minDIdx := make([]int, len(arr))
 	for range connectionNumber {
-		minDVec := make([]int, len(arr))
-		minDPos := make([]int, len(arr))
-		for i, dRow := range dMat {
-			minDVec[i] = slices.MinFunc(dRow, cmpDistance)
-			minDPos[i] = slices.Index(dRow, minDVec[i])
-		}
-
-		bestI := slices.Index(minDVec, slices.Min(minDVec))
-		bestJ := minDPos[bestI]
-
-		found := false
-		for id, members := range membership {
-			for _, x := range members {
-				if arr[bestI] == x {
-					membership[id] = append(membership[id], arr[bestJ])
-					found = true
-					break
-				}
-				if arr[bestJ] == x {
-					membership[id] = append(membership[id], arr[bestI])
-					found = true
-					break
-				}
-			}
-
-			if found {
-				break
-			}
-		}
-
-		if !found {
-			membership[idCounter] = make([]coord, 2)
-			membership[idCounter][0] = arr[bestI]
-			membership[idCounter][1] = arr[bestJ]
-			idCounter++
-		}
-
-		dMat[bestI][bestJ] = -1
-		dMat[bestJ][bestI] = -1
+		singleIter(arr, &dMatrix, &membership, &minDVec, &minDIdx)
 	}
 
 	setSizes := make([]int, 0, len(membership))
@@ -114,8 +133,14 @@ func iterativeConnect(arr []coord) int {
 		setSizes = append(setSizes, len(set))
 	}
 	slices.SortFunc(setSizes, func(a, b int) int { return b - a })
+	setSizes = setSizes[:3]
 
-	return setSizes[0] * setSizes[1] * setSizes[2]
+	var x, y coord
+	for len(membership) > 1 && len(membership[0]) < len(arr) {
+		x, y = singleIter(arr, &dMatrix, &membership, &minDVec, &minDIdx)
+	}
+
+	return setSizes[0] * setSizes[1] * setSizes[2], x[0] * y[0]
 }
 
 func main() {
