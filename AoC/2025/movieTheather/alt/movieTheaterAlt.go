@@ -51,31 +51,13 @@ func (p path) isClockwise() bool {
 		}
 	}
 
-	if cross(delta(p[n-2], p[n-1]), delta(p[1], p[0])) > 0 {
-		cnt++
-	} else {
-		cnt--
-	}
-
 	return cnt > 0
 }
 
 func (p path) filterEndpoints(i int) []int {
 	n := len(p)
 
-	if i >= n-3 {
-		return []int{}
-	}
-
-	var x, y, z coord
-	y = p[i]
-
-	if i == 0 {
-		x, z = p[n-2], p[1]
-	} else {
-		x, z = p[i-1], p[i+1]
-	}
-
+	x, y, z := p[i-1], p[i], p[i+1]
 	d0, d1 := delta(x, y), delta(z, y)
 
 	var f func(coord) bool
@@ -83,52 +65,58 @@ func (p path) filterEndpoints(i int) []int {
 		f = func(c coord) bool {
 			dc := delta(c, y)
 			dot0, dot1 := dot(dc, d0), dot(dc, d1)
-			return dot0 > 0 && dot1 > 0
+			return dot0 >= 0 && dot1 >= 0
 		}
 	} else { //right turn (90° exclusive)
 		f = func(c coord) bool {
 			dc := delta(c, y)
 			dot0, dot1 := dot(dc, d0), dot(dc, d1)
-			return dot0 < 0 || dot1 < 0
+			return dot0 <= 0 || dot1 <= 0
 		}
 	}
 
 	ret := make([]int, 0)
-	for offset, c := range p[i+2 : n-1] {
+	for j, c := range p[1 : n-1] {
+		if i == j+1 {
+			continue
+		}
 		if f(c) {
-			ret = append(ret, i+2+offset)
+			ret = append(ret, j+1)
 		}
 	}
 
 	return ret
 }
 
-func (p path) getValidArea(i, j int) int {
+func (p path) getValidArea(i, j int, pFilt []int) int {
 	bounds := [2][2]int{
 		{min(p[i][0], p[j][0]), max(p[i][0], p[j][0])},
 		{min(p[i][1], p[j][1]), max(p[i][1], p[j][1])},
 	}
 
-	var cnstIdx, varIdx int
-	for k := 0; k < len(p)-1; k++ {
-		v, w := p[k], p[k+1]
+	for _, k := range pFilt {
+		v := p[k]
+		for _, dk := range []int{-1, 1} {
+			w := p[k+dk]
 
-		if v[0] == w[0] { // horizontal wall
-			cnstIdx, varIdx = 0, 1
-		} else { // vertical wall
-			cnstIdx, varIdx = 1, 0
-		}
+			var cnstIdx, varIdx int
+			if v[0] == w[0] { // horizontal wall
+				cnstIdx, varIdx = 0, 1
+			} else { // vertical wall
+				cnstIdx, varIdx = 1, 0
+			}
 
-		if v[cnstIdx] <= bounds[cnstIdx][0] || v[cnstIdx] >= bounds[cnstIdx][1] {
-			continue
+			if v[cnstIdx] <= bounds[cnstIdx][0] || v[cnstIdx] >= bounds[cnstIdx][1] {
+				continue
+			}
+			if max(v[varIdx], w[varIdx]) <= bounds[varIdx][0] {
+				continue
+			}
+			if min(v[varIdx], w[varIdx]) >= bounds[varIdx][1] {
+				continue
+			}
+			return 0
 		}
-		if max(v[varIdx], w[varIdx]) <= bounds[varIdx][0] {
-			continue
-		}
-		if min(v[varIdx], w[varIdx]) >= bounds[varIdx][1] {
-			continue
-		}
-		return 0
 	}
 
 	return p.getRectangleArea(i, j)
@@ -144,12 +132,15 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	n, _ := utils.LineCounter(file)
 
-	p := make(path, 0, n+1)
+	p := make(path, 0, n+2)
 
 	for scanner.Scan() {
 		p = append(p, parseCoord(scanner.Text()))
 	}
-	p = append(p, p[0])
+
+	first, last := p[0], p[n-1]
+	p = append(p, first)
+	p = slices.Insert(p, 0, last)
 
 	if !p.isClockwise() {
 		slices.Reverse(p)
@@ -157,15 +148,19 @@ func main() {
 
 	var resA, resB int
 	for i := range len(p) - 2 {
-		for offset := range p[i+1:] {
-			resA = max(resA, p.getRectangleArea(i, i+1+offset))
+		for offset := range len(p) - 3 - i {
+			resA = max(resA, p.getRectangleArea(i+1, i+2+offset))
 		}
 
-		for _, j := range p.filterEndpoints(i) {
-			if p.getRectangleArea(i, j) <= resB {
+		pFilt := p.filterEndpoints(i + 1)
+		for _, j := range pFilt {
+			if i+1 >= j {
 				continue
 			}
-			resB = max(resB, p.getValidArea(i, j))
+			if p.getRectangleArea(i+1, j) <= resB {
+				continue
+			}
+			resB = max(resB, p.getValidArea(i, j, pFilt))
 		}
 	}
 
