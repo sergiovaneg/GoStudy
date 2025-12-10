@@ -9,9 +9,10 @@ import (
 )
 
 type machine struct {
-	target   int
-	buttons  []int
-	joltages []int
+	target      int
+	buttons     []int
+	numCounters int
+	joltages    string
 }
 
 func parseMachine(line string) machine {
@@ -35,12 +36,9 @@ func parseMachine(line string) machine {
 		ret.buttons = append(ret.buttons, mask)
 	}
 
-	ret.joltages = make([]int, 0)
 	joltages := regexp.MustCompile(`\{[\d\,]+\}`).FindString(line)
-	for joltage := range strings.SplitSeq(joltages, ",") {
-		val, _ := strconv.Atoi(joltage)
-		ret.joltages = append(ret.joltages, val)
-	}
+	ret.joltages = joltages[1 : len(joltages)-1]
+	ret.numCounters = len(target)
 
 	return ret
 }
@@ -57,6 +55,7 @@ func (m machine) minPushes() int {
 		for _, s0 := range states {
 			for _, button := range m.buttons {
 				s1 := s0 ^ button
+
 				if _, ok := dp[s1]; !ok {
 					newStates = append(newStates, s1)
 					dp[s1] = cnt
