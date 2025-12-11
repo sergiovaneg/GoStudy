@@ -23,6 +23,10 @@ func (g *graph) get(label string) *node {
 }
 
 func numPaths(src, dst *node, dp *map[[2]*node]int) int {
+	if src == nil || dst == nil {
+		return 0
+	}
+
 	if res, ok := (*dp)[[2]*node{src, dst}]; ok {
 		return res
 	}
@@ -62,5 +66,15 @@ func main() {
 	}
 
 	dp := make(map[[2]*node]int)
-	println(numPaths(g["you"], g["out"], &dp))
+	resA := numPaths(g["you"], g["out"], &dp)
+	resB := numPaths(
+		g["svr"], g["dac"], &dp)*numPaths(
+		g["dac"], g["fft"], &dp)*numPaths(
+		g["fft"], g["out"], &dp) + numPaths(
+		g["svr"], g["fft"], &dp)*numPaths(
+		g["fft"], g["dac"], &dp)*numPaths(
+		g["dac"], g["out"], &dp)
+
+	println(resA)
+	println(resB)
 }
