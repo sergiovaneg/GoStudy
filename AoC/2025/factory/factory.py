@@ -27,15 +27,15 @@ def parse_machine(machine: str) -> tuple[np.ndarray, np.ndarray]:
 
 
 def optimize_pushes(mask: np.ndarray, joltages: np.ndarray) -> int:
-    x = optimize.linprog(
+    num_pushes = optimize.linprog(
         c=np.ones(mask.shape[1]),
         A_eq=mask,
         b_eq=joltages,
         bounds=(0, np.sum(joltages)),
         integrality=1
-    ).x
+    ).fun
 
-    return int(np.sum(x))
+    return round(num_pushes)
 
 
 total = 0

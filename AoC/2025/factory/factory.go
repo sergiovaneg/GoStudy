@@ -2,17 +2,19 @@ package main
 
 import (
 	"bufio"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/draffensperger/golp"
 )
 
 type machine struct {
-	target      int
-	buttons     []int
-	numCounters int
-	joltages    string
+	target   int
+	buttons  []int
+	joltages []int
 }
 
 func parseMachine(line string) machine {
@@ -37,13 +39,18 @@ func parseMachine(line string) machine {
 	}
 
 	joltages := regexp.MustCompile(`\{[\d\,]+\}`).FindString(line)
-	ret.joltages = joltages[1 : len(joltages)-1]
-	ret.numCounters = len(target)
+	joltages = joltages[1 : len(joltages)-1]
+
+	ret.joltages = make([]int, 0)
+	for num := range strings.SplitSeq(joltages, ",") {
+		val, _ := strconv.Atoi(num)
+		ret.joltages = append(ret.joltages, val)
+	}
 
 	return ret
 }
 
-func (m machine) minPushes() int {
+func (m machine) minPushesA() int {
 	dp := map[int]int{0: 0}
 	states := []int{0}
 	cnt := 0
@@ -73,6 +80,33 @@ func (m machine) minPushes() int {
 	return dp[m.target]
 }
 
+func (m machine) minPushesB() int {
+	lp := golp.NewLP(0, len(m.buttons))
+
+	for i, jolt := range m.joltages {
+		row := make([]golp.Entry, 0)
+
+		for j, button := range m.buttons {
+			if button&(0x01<<i) > 0 {
+				row = append(row, golp.Entry{Col: j, Val: 1.})
+			}
+		}
+
+		lp.AddConstraintSparse(row, golp.EQ, float64(jolt))
+	}
+
+	row := make([]float64, len(m.buttons))
+	for j := range m.buttons {
+		lp.SetInt(j, true)
+		row[j] = 1.
+	}
+	lp.SetObjFn(row)
+
+	lp.Solve()
+
+	return int(math.Round(lp.Objective()))
+}
+
 func main() {
 	file, err := os.Open("./input.txt")
 	if err != nil {
@@ -82,10 +116,13 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	var resA int
+	var resA, resB int
 	for scanner.Scan() {
-		resA += parseMachine(scanner.Text()).minPushes()
+		m := parseMachine(scanner.Text())
+		resA += m.minPushesA()
+		resB += m.minPushesB()
 	}
 
 	println(resA)
+	println(resB)
 }
