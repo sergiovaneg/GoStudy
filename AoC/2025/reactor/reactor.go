@@ -66,15 +66,20 @@ func main() {
 	}
 
 	dp := make(map[[2]*node]int)
-	resA := numPaths(g["you"], g["out"], &dp)
-	resB := numPaths(
-		g["svr"], g["dac"], &dp)*numPaths(
-		g["dac"], g["fft"], &dp)*numPaths(
-		g["fft"], g["out"], &dp) + numPaths(
-		g["svr"], g["fft"], &dp)*numPaths(
-		g["fft"], g["dac"], &dp)*numPaths(
-		g["dac"], g["out"], &dp)
 
+	resA := numPaths(g["you"], g["out"], &dp)
 	println(resA)
+
+	var resB int
+	if mid := numPaths(g["dac"], g["fft"], &dp); mid != 0 {
+		resB += numPaths(
+			g["svr"], g["dac"], &dp,
+		) * mid * numPaths(g["fft"], g["out"], &dp)
+	}
+	if mid := numPaths(g["fft"], g["dac"], &dp); mid != 0 {
+		resB += numPaths(
+			g["svr"], g["fft"], &dp,
+		) * mid * numPaths(g["dac"], g["out"], &dp)
+	}
 	println(resB)
 }
